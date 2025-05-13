@@ -50,10 +50,9 @@ Desired Dish Type: {{{dishType}}}
 Your generated recipe must include:
 1.  \`recipeName\`: A creative and appealing name for the dish.
 2.  \`ingredients\`: A detailed list of all necessary ingredients for the recipe.
-    *   Include precise quantities using common culinary units (e.g., "1 cup (240ml) all-purpose flour", "2 tablespoons olive oil", "150g boneless, skinless chicken thighs", "1 teaspoon dried oregano").
+    *   Include precise quantities using common culinary units (Mesurements to be Indian Specific) (e.g., "1 cup (240ml) all-purpose flour", "2 tablespoons olive oil", "150g boneless, skinless chicken thighs", "1 teaspoon dried oregano").
     *   Incorporate the "Ingredients available" and supplement with other common ingredients to make a complete and delicious dish.
 3.  \`instructions\`: Clear, step-by-step preparation and cooking instructions.
-    *   Number each step.
     *   Be specific about cooking times, temperatures, and techniques.
     *   Include any important prep work (e.g., "Preheat oven to 200°C (400°F).", "Dice onions and mince garlic.").
 
@@ -63,7 +62,13 @@ Additionally, please try to include the following for an even better recipe (the
 *   \`servings\`: Number of servings the recipe yields (e.g., "4 servings").
 *   \`tips\`: An array of strings with helpful tips, variations, or serving suggestions (e.g., ["For a gluten-free version, use tamari instead of soy sauce.", "Garnish with chopped cilantro before serving."]).
 
-Ensure your output strictly adheres to the specified output schema.
+Structure your response strictly according to the output schema:
+- \`receipeName\`: A creative and appealing name for the dish.
+- \`ingredients\`: A detailed list of all necessary ingredients for the recipe.
+- \`instructions\`: Clear, step-by-step preparation and cooking instructions.
+- \`prepTime\`: Estimated preparation time (optional).
+- \`cookTime\`: Estimated cooking time (optional).
+- \`servings\`: Number of servings the recipe yields (optional).
 `,
 });
 
