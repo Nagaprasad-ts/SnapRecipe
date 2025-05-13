@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, type ChangeEvent } from 'react';
@@ -145,25 +144,23 @@ export default function SnapRecipePage() {
     }
     setIsSavingRecipe(true);
     try {
+      // saveUserRecipe now throws an error on failure, so recipeId will be a string if successful.
       const recipeId = await saveUserRecipe(
         user.uid,
         recipeData,
-        uploadedImageDataUri || undefined, // Pass the original image URI
-        identifiedData?.ingredients || [], // Pass the original identified ingredients
-        identifiedData?.dishType || ''     // Pass the original identified dish type
+        uploadedImageDataUri || undefined,
+        identifiedData?.ingredients || [],
+        identifiedData?.dishType || ''
       );
-      if (recipeId) {
-        toast({ title: "Recipe Saved!", description: "Your recipe has been added to your collection." });
-      } else {
-        throw new Error("Failed to get recipe ID after saving.");
-      }
+      // If saveUserRecipe was successful, recipeId will be valid.
+      toast({ title: "Recipe Saved!", description: `Your recipe (ID: ${recipeId.substring(0,6)}...) has been added to your collection.` });
     } catch (err) {
-      console.error("Error saving recipe:", err);
+      console.error("Error saving recipe:", err); // Log the actual error caught from saveUserRecipe
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while saving.";
       toast({
         variant: "destructive",
         title: "Save Error",
-        description: `Failed to save recipe: ${errorMessage.substring(0,100)}`,
+        description: `Failed to save recipe: ${errorMessage.substring(0,150)}`, // Show more of the error
       });
     } finally {
       setIsSavingRecipe(false);
@@ -228,7 +225,7 @@ export default function SnapRecipePage() {
       {currentStep === 'edit' && identifiedData && (
         <Card className="w-full max-w-2xl shadow-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl"><ChefHat className="h-7 w-7 text-primary" /> Review & Adjust</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-2xl"><ChefHat className="h-7 w-7 text-primary" /> Review &amp; Adjust</CardTitle>
             <CardDescription>Correct the identified ingredients and dish type if needed.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
