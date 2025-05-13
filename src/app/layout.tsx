@@ -33,7 +33,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <AuthProvider>
-          <header className="px-5 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:block hidden">
+          <header className="px-12 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:block hidden">
             <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
               <SnapRecipeLogo />
               <AuthButton />

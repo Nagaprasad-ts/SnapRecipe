@@ -316,13 +316,25 @@ export default function SnapRecipePage() {
                 ))}
               </ol>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-2 text-primary">Instructions:</h3>
-              <ol className="list-decimal list-inside space-y-2 pl-2 bg-muted/30 p-4 rounded-md">
-                {recipeData.instructions.map((step, index) => (
-                  <li key={index} className="text-foreground/90 leading-relaxed">{step}</li>
-                ))}
-              </ol>
+            <div className='flex flex-col gap-2 justify-start items-start'>
+              {recipeData.prepTime && (
+                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                  <h3 className="text-xl font-semibold mb-2 text-primary">Preparation Time:</h3>
+                  <p className="text-foreground/90">{recipeData.prepTime}</p>
+                </div>
+              )}
+              {recipeData.cookTime && (
+                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                  <h3 className="text-xl font-semibold mb-2 text-primary">Cooking Time:</h3>
+                  <p className="text-foreground/90">{recipeData.cookTime}</p>
+                </div>
+              )}
+              {recipeData.servings && (
+                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                  <h3 className="text-xl font-semibold mb-2 text-primary">Servings:</h3>
+                  <p className="text-foreground/90">{recipeData.servings}</p>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2">
