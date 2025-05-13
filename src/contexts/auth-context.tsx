@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { auth } from '@/lib/firebase/config';
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { getRedirectResult } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -22,10 +23,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          setUser(result.user);
+        }
+      } catch (error) {
+        console.error("Error handling redirect result:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+      if (currentUser) {
+        setUser(currentUser);
+        setLoading(false);
+      } else {
+        checkAuth(); // Only check redirect result if no user is set
+      }
     });
+  
     return () => unsubscribe();
   }, []);
 
