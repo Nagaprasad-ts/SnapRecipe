@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogIn, LogOut, UserCircle, ChefHat } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, ChefHat, Home } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 
 export function AuthButton() {
@@ -58,6 +58,12 @@ export function AuthButton() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+         <DropdownMenuItem asChild>
+          <Link href="/" className="flex items-center cursor-pointer">
+            <Home className="mr-2 h-4 w-4" />
+            Home
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/profile" className="flex items-center cursor-pointer">
             <UserCircle className="mr-2 h-4 w-4" />
@@ -65,9 +71,9 @@ export function AuthButton() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/" className="flex items-center cursor-pointer">
+          <Link href="/my-recipes" className="flex items-center cursor-pointer">
             <ChefHat className="mr-2 h-4 w-4" />
-            SnapRecipe
+            My SnapRecipes
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
