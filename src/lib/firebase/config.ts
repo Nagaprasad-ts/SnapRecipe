@@ -16,17 +16,21 @@ const firebaseConfig = {
 };
 
 // Validate essential Firebase config
-if (!firebaseConfig.apiKey) {
-  console.error(
-    'Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is missing. ' +
-    'Please set it in your .env file. ' +
-    'If you do not have a .env file, copy .env.example to .env and fill in your Firebase project credentials.'
-  );
+if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+  const missingVars: string[] = [];
+  if (!firebaseConfig.apiKey) missingVars.push('NEXT_PUBLIC_FIREBASE_API_KEY');
+  if (!firebaseConfig.authDomain) missingVars.push('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN');
+  if (!firebaseConfig.projectId) missingVars.push('NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+
+  const errorMessage =
+    `Firebase configuration is critically incomplete. Missing environment variable(s): ${missingVars.join(', ')}. ` +
+    'Please ensure all required NEXT_PUBLIC_FIREBASE_... variables are correctly set in your .env file. ' +
+    'Refer to your Firebase project settings and the README.md for setup instructions.';
+  
+  console.error(errorMessage);
   // Throwing an error here can stop the app from starting, 
-  // which might be desired in some cases but can be harsh during development.
-  // Consider logging an error and allowing the app to proceed if some functionalities can work without Firebase.
-  // For this app, Firebase is critical, so throwing an error is appropriate.
-  throw new Error('Missing Firebase API Key. Check .env file and README.md for setup instructions.');
+  // which is appropriate as Firebase is critical for this application.
+  throw new Error(errorMessage);
 }
 
 
