@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogIn, LogOut, UserCircle, ChefHat, Home } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, ChefHat, Home, UserPlus } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 
 export function AuthButton() {
@@ -25,12 +25,12 @@ export function AuthButton() {
 
   if (!user) {
     return (
-      <div className="flex gap-2">
-        <Button variant="outline" onClick={() => signInWithGoogle()}>
+      <div className="flex gap-2 flex-col md:flex-row pt-12 md:pt-0">
+        <Button variant="outline" onClick={() => signInWithGoogle()} className='text-left'>
           <LogIn className="mr-2 h-4 w-4" /> Login
         </Button>
         <Button onClick={() => signInWithGoogle()}>
-         Sign Up
+          <UserPlus className="mr-2 h-4 w-4" /> Sign Up
         </Button>
       </div>
     );
@@ -58,7 +58,7 @@ export function AuthButton() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-         <DropdownMenuItem asChild>
+        <DropdownMenuItem asChild>
           <Link href="/" className="flex items-center cursor-pointer">
             <Home className="mr-2 h-4 w-4" />
             Home

@@ -23,28 +23,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          setUser(result.user);
-        }
-      } catch (error) {
-        console.error("Error handling redirect result:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        setLoading(false);
-      } else {
-        checkAuth(); // Only check redirect result if no user is set
-      }
+    const unsubscribe = auth.onIdTokenChanged((currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
     });
-  
+
     return () => unsubscribe();
   }, []);
 
@@ -69,11 +52,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       router.push('/'); // Redirect to home page after sign out
     } catch (error) {
       console.error("Error signing out:", error);
-      // Handle error
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOutUser }}>
