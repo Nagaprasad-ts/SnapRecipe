@@ -17,18 +17,16 @@ const firebaseConfig = {
 
 // Validate essential Firebase config
 if (!firebaseConfig.apiKey) {
-  throw new Error(
+  console.error(
     'Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is missing. ' +
     'Please set it in your .env file. ' +
     'If you do not have a .env file, copy .env.example to .env and fill in your Firebase project credentials.'
   );
-}
-if (!firebaseConfig.projectId) {
-  throw new Error(
-    'Firebase Project ID (NEXT_PUBLIC_FIREBASE_PROJECT_ID) is missing. ' +
-    'Please set it in your .env file. ' +
-    'If you do not have a .env file, copy .env.example to .env and fill in your Firebase project credentials.'
-  );
+  // Throwing an error here can stop the app from starting, 
+  // which might be desired in some cases but can be harsh during development.
+  // Consider logging an error and allowing the app to proceed if some functionalities can work without Firebase.
+  // For this app, Firebase is critical, so throwing an error is appropriate.
+  throw new Error('Missing Firebase API Key. Check .env file and README.md for setup instructions.');
 }
 
 
@@ -44,4 +42,3 @@ const auth: Auth = getAuth(app);
 const db: Firestore = getFirestore(app);
 
 export { app, auth, db };
-

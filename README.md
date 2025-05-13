@@ -33,7 +33,7 @@ This project uses Firebase for authentication and database services. You need to
 
 3.  **Create `.env` file:**
     This project uses a `.env` file to store environment variables.
-    Copy the `.env.example` file to a new file named `.env` in the root of the project:
+    If it doesn't exist, copy the `.env.example` file to a new file named `.env` in the root of the project:
     ```bash
     cp .env.example .env
     ```
@@ -50,7 +50,7 @@ This project uses Firebase for authentication and database services. You need to
     NEXT_PUBLIC_FIREBASE_APP_ID=YOUR_APP_ID
     NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=YOUR_MEASUREMENT_ID
     ```
-    Replace `YOUR_API_KEY`, `YOUR_AUTH_DOMAIN`, etc., with the actual values from your Firebase project.
+    Replace `YOUR_API_KEY`, `YOUR_AUTH_DOMAIN`, etc., with the actual values from your Firebase project. The example values in the `firebaseConfig` object in step 2 correspond to these environment variable names.
 
     **Important:** The `NEXT_PUBLIC_` prefix is necessary for Next.js to expose these variables to the browser-side client code.
 
