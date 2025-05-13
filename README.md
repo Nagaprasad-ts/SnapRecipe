@@ -58,3 +58,4 @@ This project uses Firebase for authentication and database services. You need to
     If your development server (`npm run dev` or `yarn dev`) was running, you'll need to restart it for the new environment variables to be loaded.
 
 Now your application should be able to connect to Firebase.
+# SnapRecipe
