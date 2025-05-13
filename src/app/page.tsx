@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, type ChangeEvent } from 'react';
@@ -142,9 +143,19 @@ export default function SnapRecipePage() {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in and have a recipe generated to save." });
       return;
     }
+    console.log("[handleSaveRecipe] Setting isSavingRecipe to true");
     setIsSavingRecipe(true);
     try {
-      // saveUserRecipe now throws an error on failure, so recipeId will be a string if successful.
+      console.log("[handleSaveRecipe] Attempting to save recipe with data:", {
+        userId: user.uid,
+        recipeName: recipeData.recipeName,
+        imageLength: uploadedImageDataUri?.length,
+        numIngredients: recipeData.ingredients.length,
+        numInstructions: recipeData.instructions.length,
+        originalNumIngredients: identifiedData?.ingredients?.length,
+        originalDishType: identifiedData?.dishType
+      });
+
       const recipeId = await saveUserRecipe(
         user.uid,
         recipeData,
@@ -152,17 +163,18 @@ export default function SnapRecipePage() {
         identifiedData?.ingredients || [],
         identifiedData?.dishType || ''
       );
-      // If saveUserRecipe was successful, recipeId will be valid.
+      console.log("[handleSaveRecipe] Recipe saved successfully, ID:", recipeId);
       toast({ title: "Recipe Saved!", description: `Your recipe (ID: ${recipeId.substring(0,6)}...) has been added to your collection.` });
     } catch (err) {
-      console.error("Error saving recipe:", err); // Log the actual error caught from saveUserRecipe
+      console.error("[handleSaveRecipe] Error caught while saving recipe:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while saving.";
       toast({
         variant: "destructive",
         title: "Save Error",
-        description: `Failed to save recipe: ${errorMessage.substring(0,150)}`, // Show more of the error
+        description: `Failed to save recipe: ${errorMessage}. Check console for details.`,
       });
     } finally {
+      console.log("[handleSaveRecipe] Setting isSavingRecipe to false in finally block");
       setIsSavingRecipe(false);
     }
   };
