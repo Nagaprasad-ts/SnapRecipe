@@ -4,9 +4,8 @@
 import type { User } from 'firebase/auth';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { auth } from '@/lib/firebase/config';
-import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { getRedirectResult } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -36,20 +35,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // Navigation will be handled by the component calling this or by effects watching the user state
+      // onAuthStateChanged will handle setting user and loading state.
+      // Successful sign-in will trigger onAuthStateChanged, then components might redirect.
     } catch (error) {
       console.error("Error signing in with Google:", error);
-      // Handle error (e.g., show a toast notification)
-    } finally {
-      setLoading(false);
+      setLoading(false); // Ensure loading is false on error
     }
+    // setLoading(false) will be handled by onAuthStateChanged on success.
   };
 
   const signOutUser = async () => {
-    setLoading(true);
+    setLoading(true); // Indicate an operation is in progress
     try {
-      await signOut(auth);
-      router.push('/'); // Redirect to home page after sign out
+      await signOut(auth); // This will trigger onAuthStateChanged
+      router.push('/'); // Redirect to home page after sign out call
+      // setUser(null) and setLoading(false) will be handled by onAuthStateChanged
     } catch (error) {
       console.error("Error signing out:", error);
     } finally {
@@ -72,3 +72,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
