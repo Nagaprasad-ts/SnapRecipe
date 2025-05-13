@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, type ChangeEvent } from 'react';
@@ -6,16 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+// Textarea removed as it's not used in this component. Re-add if needed.
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2 } from 'lucide-react';
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/contexts/auth-context';
+import { saveUserRecipe } from '@/services/user-recipes';
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
 export default function SnapRecipePage() {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<AppStep>('upload');
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImageDataUri, setUploadedImageDataUri] = useState<string | null>(null);
@@ -28,6 +32,7 @@ export default function SnapRecipePage() {
   
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false);
+  const [isSavingRecipe, setIsSavingRecipe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { toast } = useToast();
@@ -130,6 +135,38 @@ export default function SnapRecipePage() {
       });
     } finally {
       setIsLoadingRecipe(false);
+    }
+  };
+
+  const handleSaveRecipe = async () => {
+    if (!user || !recipeData) {
+      toast({ variant: "destructive", title: "Error", description: "You must be logged in and have a recipe generated to save." });
+      return;
+    }
+    setIsSavingRecipe(true);
+    try {
+      const recipeId = await saveUserRecipe(
+        user.uid,
+        recipeData,
+        uploadedImageDataUri || undefined, // Pass the original image URI
+        identifiedData?.ingredients || [], // Pass the original identified ingredients
+        identifiedData?.dishType || ''     // Pass the original identified dish type
+      );
+      if (recipeId) {
+        toast({ title: "Recipe Saved!", description: "Your recipe has been added to your collection." });
+      } else {
+        throw new Error("Failed to get recipe ID after saving.");
+      }
+    } catch (err) {
+      console.error("Error saving recipe:", err);
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while saving.";
+      toast({
+        variant: "destructive",
+        title: "Save Error",
+        description: `Failed to save recipe: ${errorMessage.substring(0,100)}`,
+      });
+    } finally {
+      setIsSavingRecipe(false);
     }
   };
 
@@ -251,7 +288,7 @@ export default function SnapRecipePage() {
         <Card className="w-full max-w-2xl shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl"><Utensils className="h-7 w-7 text-primary" /> {recipeData.recipeName}</CardTitle>
-            <CardDescription>Here's your custom-generated recipe!</CardDescription>
+            <CardDescription>Here&apos;s your custom-generated recipe!</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
@@ -271,10 +308,16 @@ export default function SnapRecipePage() {
               </ol>
             </div>
           </CardContent>
-          <CardFooter>
-            <Button variant="outline" onClick={handleStartOver} className="w-full">
-              Create Another Recipe
+          <CardFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">
+              Create Another
             </Button>
+            {user && (
+              <AccentButton onClick={handleSaveRecipe} disabled={isSavingRecipe} className="w-full sm:flex-grow">
+                {isSavingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Save Recipe
+              </AccentButton>
+            )}
           </CardFooter>
         </Card>
       )}
