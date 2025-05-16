@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
-// Textarea removed as it's not used in this component. Re-add if needed.
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
@@ -153,18 +152,22 @@ export default function SnapRecipePage() {
         numIngredients: recipeData.ingredients.length,
         numInstructions: recipeData.instructions.length,
         originalNumIngredients: identifiedData?.ingredients?.length,
-        originalDishType: identifiedData?.dishType
+        originalDishType: identifiedData?.dishType,
+        prepTime: recipeData.prepTime,
+        cookTime: recipeData.cookTime,
+        servings: recipeData.servings,
+        tips: recipeData.tips,
       });
 
       const recipeId = await saveUserRecipe(
         user.uid,
-        recipeData,
+        recipeData, // This already includes tips, prepTime, etc.
         uploadedImageDataUri || undefined,
         identifiedData?.ingredients || [],
         identifiedData?.dishType || ''
       );
       console.log("[handleSaveRecipe] Recipe saved successfully, ID:", recipeId);
-      toast({ title: "Recipe Saved!", description: `Your recipe (ID: ${recipeId.substring(0, 6)}...) has been added to your collection.` });
+      toast({ title: "Recipe Saved!", description: `Your recipe (${recipeData.recipeName}) has been added to your collection.` });
     } catch (err) {
       console.error("[handleSaveRecipe] Error caught while saving recipe:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while saving.";
@@ -197,7 +200,7 @@ export default function SnapRecipePage() {
   return (
     <div className="container mx-auto p-4 md:p-8 flex flex-col items-center">
       {error && (
-        <Alert variant="destructive" className="w-full max-w-2xl">
+        <Alert variant="destructive" className="w-full max-w-2xl mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
@@ -316,26 +319,34 @@ export default function SnapRecipePage() {
                 ))}
               </ol>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-2 text-primary">Tips of the Dish:</h3>
-              <p className='text-foreground/90 leading-relaxed bg-muted/30 p-4 rounded-md'>{recipeData.tips}</p>
-            </div>
-            <div className='flex flex-col gap-2 justify-start items-start'>
+            
+            {recipeData.tips && recipeData.tips.length > 0 && (
+              <div>
+                <h3 className="text-xl font-semibold mb-2 text-primary">Tips & Variations:</h3>
+                <ul className="list-disc list-inside space-y-1 pl-2 bg-muted/30 p-4 rounded-md">
+                  {recipeData.tips.map((tip, index) => (
+                    <li key={index} className="text-foreground/90">{tip}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className='flex flex-col gap-y-4'>
               {recipeData.prepTime && (
-                <div className='flex flex-col sm:flex-row gap-2 md:justify-center md:items-center'>
-                  <h3 className="text-xl font-semibold mb-2 text-primary">Preparation Time:</h3>
+                <div className='flex flex-col sm:flex-row sm:items-center gap-x-2'>
+                  <h3 className="text-lg font-semibold text-primary shrink-0">Preparation Time:</h3>
                   <p className="text-foreground/90">{recipeData.prepTime}</p>
                 </div>
               )}
               {recipeData.cookTime && (
-                <div className='flex flex-col sm:flex-row gap-2 md:justify-center md:items-center'>
-                  <h3 className="text-xl font-semibold mb-2 text-primary">Cooking Time:</h3>
+                <div className='flex flex-col sm:flex-row sm:items-center gap-x-2'>
+                  <h3 className="text-lg font-semibold text-primary shrink-0">Cooking Time:</h3>
                   <p className="text-foreground/90">{recipeData.cookTime}</p>
                 </div>
               )}
               {recipeData.servings && (
-                <div className='flex flex-col sm:flex-row gap-2 md:justify-center md:items-center'>
-                  <h3 className="text-xl font-semibold mb-2 text-primary">Servings:</h3>
+                <div className='flex flex-col sm:flex-row sm:items-center gap-x-2'>
+                  <h3 className="text-lg font-semibold text-primary shrink-0">Servings:</h3>
                   <p className="text-foreground/90">{recipeData.servings}</p>
                 </div>
               )}

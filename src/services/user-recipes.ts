@@ -1,3 +1,4 @@
+
 "use server";
 
 import { db } from "@/lib/firebase/config";
@@ -13,6 +14,7 @@ import {
   deleteDoc,
   doc,
   Timestamp,
+  getDoc,
 } from "firebase/firestore";
 
 // Firestore document limit is 1 MiB (1,048,576 bytes).
@@ -46,7 +48,7 @@ export async function saveUserRecipe(
   try {
     const recipesCollectionRef = collection(db, "users", userId, "recipes");
     const docData = {
-      ...recipeData,
+      ...recipeData, // This includes recipeName, ingredients, instructions, and optional tips, prepTime, cookTime, servings
       userId,
       createdAt: serverTimestamp(),
       recipeImage: recipeImage || null,
@@ -84,24 +86,22 @@ export async function getUserRecipes(userId: string): Promise<SavedRecipe[]> {
 
     return querySnapshot.docs.map((docSnap) => {
       const data = docSnap.data();
-      // Ensure createdAt is a number (milliseconds)
       let createdAtNumeric: number;
       if (data.createdAt instanceof Timestamp) {
         createdAtNumeric = data.createdAt.toMillis();
       } else if (typeof data.createdAt === "number") {
-        createdAtNumeric = data.createdAt; // Should ideally not happen if serverTimestamp is used
+        createdAtNumeric = data.createdAt;
       } else if (
         data.createdAt &&
         typeof data.createdAt.seconds === "number" &&
         typeof data.createdAt.nanoseconds === "number"
       ) {
-        // Handle plain object representation of Timestamp if it occurs
         createdAtNumeric = new Timestamp(
           data.createdAt.seconds,
           data.createdAt.nanoseconds
         ).toMillis();
       } else {
-        createdAtNumeric = Date.now(); // Fallback, though ideally should always be a Timestamp
+        createdAtNumeric = Date.now();
       }
 
       return {
@@ -114,6 +114,10 @@ export async function getUserRecipes(userId: string): Promise<SavedRecipe[]> {
         recipeImage: data.recipeImage || undefined,
         originalIngredients: data.originalIngredients || [],
         originalDishType: data.originalDishType || "",
+        prepTime: data.prepTime || undefined,
+        cookTime: data.cookTime || undefined,
+        servings: data.servings || undefined,
+        tips: data.tips || [],
       } as SavedRecipe;
     });
   } catch (error) {
@@ -150,8 +154,6 @@ export async function deleteUserRecipe(
     return false;
   }
 }
-
-import { getDoc } from "firebase/firestore";
 
 export async function getUserRecipeById(
   userId: string,
@@ -190,6 +192,10 @@ export async function getUserRecipeById(
       recipeImage: data.recipeImage || undefined,
       originalIngredients: data.originalIngredients || [],
       originalDishType: data.originalDishType || "",
+      prepTime: data.prepTime || undefined,
+      cookTime: data.cookTime || undefined,
+      servings: data.servings || undefined,
+      tips: data.tips || [],
     } as SavedRecipe;
   } catch (error) {
     console.error(
