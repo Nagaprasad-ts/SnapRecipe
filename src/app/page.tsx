@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
 import type { NutritionalInfo } from '@/types/recipe';
-import { cn } from "@/lib/utils"; // Added import for cn
+import { cn } from "@/lib/utils";
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
@@ -148,9 +148,9 @@ export default function SnapRecipePage() {
     try {
       const recipeId = await saveUserRecipe(
         user.uid,
-        recipeData, 
+        recipeData,
         uploadedImageDataUri || undefined,
-        identifiedData 
+        identifiedData || undefined // Changed from identifiedData to identifiedData || undefined
       );
       toast({ title: "Recipe Saved!", description: `Your recipe (${recipeData.recipeName}) has been added to your collection.` });
     } catch (err) {
