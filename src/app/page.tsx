@@ -319,7 +319,7 @@ export default function SnapRecipePage() {
                 ))}
               </ol>
             </div>
-            
+
             {recipeData.tips && recipeData.tips.length > 0 && (
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-primary">Tips & Variations:</h3>
