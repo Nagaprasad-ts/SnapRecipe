@@ -9,6 +9,7 @@ import { AuthButton } from '@/components/auth-button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button'; // Added import
 import { Menu } from 'lucide-react';
+import Link from 'next/link';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,8 +37,10 @@ export default function RootLayout({
         <AuthProvider>
           <header className="px-4 md:px-12 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between">
-              <SnapRecipeLogo />
-              
+              <Link href="/" className="flex items-center">
+                <SnapRecipeLogo />
+              </Link>
+
               {/* Desktop Auth/Nav Buttons */}
               <div className="hidden md:flex">
                 <AuthButton />

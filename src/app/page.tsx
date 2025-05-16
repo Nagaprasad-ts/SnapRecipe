@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -299,7 +299,7 @@ export default function SnapRecipePage() {
             <CardTitle className="flex items-center gap-2 text-2xl"><Utensils className="h-7 w-7 text-primary" /> {recipeData.recipeName}</CardTitle>
             <CardDescription>Here&apos;s your custom-generated recipe!</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 text-justify">
             <div>
               <h3 className="text-xl font-semibold mb-2 text-primary">Ingredients:</h3>
               <ul className="list-disc list-inside space-y-1 pl-2 bg-muted/30 p-4 rounded-md">
@@ -316,21 +316,25 @@ export default function SnapRecipePage() {
                 ))}
               </ol>
             </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-2 text-primary">Tips of the Dish:</h3>
+              <p className='text-foreground/90 leading-relaxed bg-muted/30 p-4 rounded-md'>{recipeData.tips}</p>
+            </div>
             <div className='flex flex-col gap-2 justify-start items-start'>
               {recipeData.prepTime && (
-                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                <div className='flex flex-col sm:flex-row gap-2 md:justify-center md:items-center'>
                   <h3 className="text-xl font-semibold mb-2 text-primary">Preparation Time:</h3>
                   <p className="text-foreground/90">{recipeData.prepTime}</p>
                 </div>
               )}
               {recipeData.cookTime && (
-                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                <div className='flex flex-col sm:flex-row gap-2 md:justify-center md:items-center'>
                   <h3 className="text-xl font-semibold mb-2 text-primary">Cooking Time:</h3>
                   <p className="text-foreground/90">{recipeData.cookTime}</p>
                 </div>
               )}
               {recipeData.servings && (
-                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                <div className='flex flex-col sm:flex-row gap-2 md:justify-center md:items-center'>
                   <h3 className="text-xl font-semibold mb-2 text-primary">Servings:</h3>
                   <p className="text-foreground/90">{recipeData.servings}</p>
                 </div>

@@ -69,6 +69,7 @@ Structure your response strictly according to the output schema:
 - \`prepTime\`: Estimated preparation time (optional).
 - \`cookTime\`: Estimated cooking time (optional).
 - \`servings\`: Number of servings the recipe yields (optional).
+- \`tips\`: Tips for cooking (optional).
 `,
 });
 

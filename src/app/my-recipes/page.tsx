@@ -110,7 +110,7 @@ function MyRecipesPageContent() {
             <Card key={recipe.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="p-0">
                 {recipe.recipeImage ? (
-                  <div className="aspect-video w-full relative rounded-t-md overflow-hidden bg-muted">
+                  <div className="aspect-video w-full relative rounded-md overflow-hidden bg-muted">
                     <Image
                       src={recipe.recipeImage}
                       alt={recipe.recipeName || "Recipe image"}
@@ -147,6 +147,11 @@ function MyRecipesPageContent() {
                     </p>
                   </div>
                 )}
+                <Link href={`/my-recipes/${recipe.id}`} passHref>
+                  <Button variant="default" size="sm" className="w-full">
+                    View
+                  </Button>
+                </Link>
               </CardContent>
               <CardFooter className="p-4 border-t">
                 <AlertDialog>

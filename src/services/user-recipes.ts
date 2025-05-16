@@ -150,3 +150,52 @@ export async function deleteUserRecipe(
     return false;
   }
 }
+
+import { getDoc } from "firebase/firestore";
+
+export async function getUserRecipeById(
+  userId: string,
+  recipeId: string
+): Promise<SavedRecipe | null> {
+  if (!userId || !recipeId) {
+    console.error("[getUserRecipeById] User ID and Recipe ID are required.");
+    return null;
+  }
+
+  try {
+    const recipeDocRef = doc(db, "users", userId, "recipes", recipeId);
+    const docSnap = await getDoc(recipeDocRef);
+
+    if (!docSnap.exists()) {
+      console.warn(`[getUserRecipeById] Recipe not found: ${recipeId}`);
+      return null;
+    }
+
+    const data = docSnap.data();
+
+    let createdAtNumeric: number;
+    if (data.createdAt instanceof Timestamp) {
+      createdAtNumeric = data.createdAt.toMillis();
+    } else {
+      createdAtNumeric = Date.now();
+    }
+
+    return {
+      id: docSnap.id,
+      recipeName: data.recipeName || "Unnamed Recipe",
+      ingredients: data.ingredients || [],
+      instructions: data.instructions || [],
+      userId: data.userId || "",
+      createdAt: createdAtNumeric,
+      recipeImage: data.recipeImage || undefined,
+      originalIngredients: data.originalIngredients || [],
+      originalDishType: data.originalDishType || "",
+    } as SavedRecipe;
+  } catch (error) {
+    console.error(
+      `[getUserRecipeById] Failed to fetch recipe ${recipeId}:`,
+      error
+    );
+    return null;
+  }
+}
