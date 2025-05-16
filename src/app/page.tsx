@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity } from 'lucide-react';
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Timer, Flame, Users } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
@@ -150,7 +150,7 @@ export default function SnapRecipePage() {
         user.uid,
         recipeData,
         uploadedImageDataUri || undefined,
-        identifiedData || undefined // Changed from identifiedData to identifiedData || undefined
+        identifiedData || undefined
       );
       toast({ title: "Recipe Saved!", description: `Your recipe (${recipeData.recipeName}) has been added to your collection.` });
     } catch (err) {
@@ -187,16 +187,16 @@ export default function SnapRecipePage() {
     />
   );
 
-  const renderNutritionalInfo = (ni: NutritionalInfo, title: string) => (
+  const renderNutritionalInfo = (ni: NutritionalInfo, title: string, icon: React.ReactNode) => (
     <div>
       <h3 className="text-xl font-semibold mb-2 text-primary flex items-center gap-2">
-        <Activity className="h-5 w-5" /> {title}
+        {icon} {title}
       </h3>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 bg-muted/30 p-4 rounded-md text-sm">
-        <p><span className="font-medium">Calories:</span> {ni.calories}</p>
-        <p><span className="font-medium">Protein:</span> {ni.protein}</p>
-        <p><span className="font-medium">Carbs:</span> {ni.carbohydrates}</p>
-        <p><span className="font-medium">Fat:</span> {ni.fat}</p>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 bg-muted/30 p-4 rounded-lg text-sm">
+        <p><strong className="font-medium text-muted-foreground">Calories:</strong> {ni.calories}</p>
+        <p><strong className="font-medium text-muted-foreground">Protein:</strong> {ni.protein}</p>
+        <p><strong className="font-medium text-muted-foreground">Carbs:</strong> {ni.carbohydrates}</p>
+        <p><strong className="font-medium text-muted-foreground">Fat:</strong> {ni.fat}</p>
       </div>
     </div>
   );
@@ -260,7 +260,7 @@ export default function SnapRecipePage() {
                 />
               </div>
             )}
-            {identifiedData.nutritionalInfo && renderNutritionalInfo(identifiedData.nutritionalInfo, "Estimated Nutrients (from Photo)")}
+            {identifiedData.nutritionalInfo && renderNutritionalInfo(identifiedData.nutritionalInfo, "Estimated Nutrients (from Photo)", <Activity className="h-6 w-6" />)}
             <div className="space-y-2">
               <Label htmlFor="dishType" className="text-lg font-semibold">Dish Type</Label>
               <Input
@@ -304,59 +304,74 @@ export default function SnapRecipePage() {
       {currentStep === 'recipe' && recipeData && (
         <Card className="w-full max-w-2xl shadow-xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl"><Utensils className="h-7 w-7 text-primary" /> {recipeData.recipeName}</CardTitle>
+            <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl font-bold text-primary">
+              <Utensils className="h-7 w-7 md:h-8 md:w-8" /> {recipeData.recipeName}
+            </CardTitle>
             <CardDescription>Here&apos;s your custom-generated recipe and its nutritional information!</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6 text-justify">
-            {recipeData.nutritionalInfo && renderNutritionalInfo(recipeData.nutritionalInfo, "Nutritional Info (Per Serving)")}
+          <CardContent className="space-y-8 text-justify">
+            
+          {(recipeData.prepTime || recipeData.cookTime || recipeData.servings) && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 py-4">
+                {recipeData.prepTime && (
+                    <div className="flex flex-col items-center p-3 bg-muted/30 rounded-lg">
+                        <Timer className="h-7 w-7 text-primary mb-1.5" />
+                        <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Prep Time</h3>
+                        <p className="text-lg font-medium text-foreground">{recipeData.prepTime}</p>
+                    </div>
+                )}
+                {recipeData.cookTime && (
+                    <div className="flex flex-col items-center p-3 bg-muted/30 rounded-lg">
+                        <Flame className="h-7 w-7 text-primary mb-1.5" />
+                        <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Cook Time</h3>
+                        <p className="text-lg font-medium text-foreground">{recipeData.cookTime}</p>
+                    </div>
+                )}
+                {recipeData.servings && (
+                    <div className="flex flex-col items-center p-3 bg-muted/30 rounded-lg">
+                        <Users className="h-7 w-7 text-primary mb-1.5" />
+                        <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Servings</h3>
+                        <p className="text-lg font-medium text-foreground">{recipeData.servings}</p>
+                    </div>
+                )}
+              </div>
+            )}
+
+            {recipeData.nutritionalInfo && renderNutritionalInfo(recipeData.nutritionalInfo, "Recipe Nutritional Info (Per Serving)", <Activity className="h-6 w-6" />)}
+            
             <div>
-              <h3 className="text-xl font-semibold mb-2 text-primary">Ingredients:</h3>
-              <ul className="list-disc list-inside space-y-1 pl-2 bg-muted/30 p-4 rounded-md">
+              <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                <ShoppingBasket className="h-6 w-6" />Ingredients:
+              </h3>
+              <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg">
                 {recipeData.ingredients.map((item, index) => (
-                  <li key={index} className="text-foreground/90">{item}</li>
+                  <li key={index} className="ml-4 leading-relaxed">{item}</li>
                 ))}
               </ul>
             </div>
             <div>
-              <h3 className="text-xl font-semibold mb-2 text-primary">Instructions:</h3>
-              <ol className="list-decimal list-inside space-y-2 pl-2 bg-muted/30 p-4 rounded-md">
+              <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                <ListChecks className="h-6 w-6" />Instructions:
+              </h3>
+              <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg">
                 {recipeData.instructions.map((step, index) => (
-                  <li key={index} className="text-foreground/90 leading-relaxed">{step}</li>
+                  <li key={index} className="ml-4 leading-relaxed">{step}</li>
                 ))}
               </ol>
             </div>
 
             {recipeData.tips && recipeData.tips.length > 0 && (
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-primary">Tips & Variations:</h3>
-                <ul className="list-disc list-inside space-y-1 pl-2 bg-muted/30 p-4 rounded-md">
+                <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                  <Lightbulb className="h-6 w-6" />Tips & Variations:
+                </h3>
+                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg">
                   {recipeData.tips.map((tip, index) => (
-                    <li key={index} className="text-foreground/90">{tip}</li>
+                    <li key={index} className="ml-4 leading-relaxed">{tip}</li>
                   ))}
                 </ul>
               </div>
             )}
-
-            <div className='flex flex-col gap-y-4'>
-              {recipeData.prepTime && (
-                <div className='flex flex-col sm:flex-row sm:items-center gap-x-2'>
-                  <h3 className="text-lg font-semibold text-primary shrink-0">Preparation Time:</h3>
-                  <p className="text-foreground/90">{recipeData.prepTime}</p>
-                </div>
-              )}
-              {recipeData.cookTime && (
-                <div className='flex flex-col sm:flex-row sm:items-center gap-x-2'>
-                  <h3 className="text-lg font-semibold text-primary shrink-0">Cooking Time:</h3>
-                  <p className="text-foreground/90">{recipeData.cookTime}</p>
-                </div>
-              )}
-              {recipeData.servings && (
-                <div className='flex flex-col sm:flex-row sm:items-center gap-x-2'>
-                  <h3 className="text-lg font-semibold text-primary shrink-0">Servings:</h3>
-                  <p className="text-foreground/90">{recipeData.servings}</p>
-                </div>
-              )}
-            </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">

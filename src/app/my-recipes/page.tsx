@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useEffect, useState } from 'react';
 import type { SavedRecipe } from '@/types/recipe';
 import { deleteUserRecipe, getUserRecipes } from '@/services/user-recipes';
-import { Loader2, Trash2, Utensils, ImageOff, ChefHat } from 'lucide-react';
+import { Loader2, Trash2, Utensils, ImageOff, ChefHat, ShoppingBasket, Camera } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -60,7 +60,6 @@ function MyRecipesPageContent() {
   };
 
   if (!user) {
-    // This case should ideally be handled by ProtectedRoute, but as a fallback:
     return <div className="text-center p-8">Please log in to view your recipes.</div>;
   }
 
@@ -82,16 +81,18 @@ function MyRecipesPageContent() {
       ) : recipes.length === 0 ? (
         <Card className="w-full max-w-2xl mx-auto text-center shadow-lg">
           <CardHeader>
-            <CardTitle>No Recipes Yet!</CardTitle>
+            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+              <ChefHat className="h-7 w-7 text-primary" /> No Recipes Yet!
+            </CardTitle>
             <CardDescription>You haven&apos;t saved any SnapRecipes. Let&apos;s create some!</CardDescription>
           </CardHeader>
           <CardContent>
             <Image
-              src="https://picsum.photos/seed/recipes/400/250"
+              src="https://placehold.co/400x250.png"
               alt="Empty recipe book"
               width={400}
               height={250}
-              className="mx-auto rounded-md mb-4"
+              className="mx-auto rounded-md mb-4 bg-muted"
               data-ai-hint="cooking book"
             />
             <p className="mb-4 text-muted-foreground">
@@ -107,10 +108,10 @@ function MyRecipesPageContent() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recipes.map((recipe) => (
-            <Card key={recipe.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <Card key={recipe.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
               <CardHeader className="p-0">
                 {recipe.recipeImage ? (
-                  <div className="aspect-video w-full relative rounded-md overflow-hidden bg-muted">
+                  <div className="aspect-video w-full relative rounded-t-md overflow-hidden bg-muted">
                     <Image
                       src={recipe.recipeImage}
                       alt={recipe.recipeName || "Recipe image"}
@@ -120,40 +121,44 @@ function MyRecipesPageContent() {
                     />
                   </div>
                 ) : (
-                  <div className="aspect-video w-full flex items-center justify-center bg-muted rounded-t-md">
+                  <div className="aspect-video w-full flex items-center justify-center bg-muted rounded-t-md" data-ai-hint="recipe placeholder">
                     <ImageOff className="h-16 w-16 text-muted-foreground" />
                   </div>
                 )}
               </CardHeader>
-              <CardContent className="flex-grow space-y-3 p-4">
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Utensils className="h-5 w-5 text-primary" />
+              <CardContent className="flex-grow space-y-4 p-4">
+                <CardTitle className="text-xl flex items-center gap-2 text-primary">
+                  <Utensils className="h-5 w-5" />
                   {recipe.recipeName}
                 </CardTitle>
-                {recipe.originalDishType && <CardDescription>Original dish type: {recipe.originalDishType}</CardDescription>}
+                {recipe.originalDishType && <CardDescription className="text-sm text-muted-foreground">Original dish: {recipe.originalDishType}</CardDescription>}
 
-                <div>
-                  <h4 className="font-semibold text-sm mb-1 text-primary">Ingredients:</h4>
-                  <ul className="list-disc list-inside text-xs text-muted-foreground max-h-24 overflow-y-auto bg-background p-2 rounded scrollbar-thin scrollbar-thumb-muted">
-                    {recipe.ingredients.slice(0, 5).map((ing, i) => <li key={i}>{ing}</li>)}
-                    {recipe.ingredients.length > 5 && <li>...and {recipe.ingredients.length - 5} more</li>}
-                  </ul>
-                </div>
+                {recipe.ingredients && recipe.ingredients.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1 text-primary flex items-center gap-1.5">
+                      <ShoppingBasket className="h-4 w-4" />Ingredients:
+                    </h4>
+                    <ul className="list-disc list-inside text-xs text-muted-foreground max-h-20 overflow-y-auto bg-muted/30 p-2 rounded scrollbar-thin scrollbar-thumb-muted-foreground/50">
+                      {recipe.ingredients.slice(0, 5).map((ing, i) => <li key={i} className="ml-2">{ing}</li>)}
+                      {recipe.ingredients.length > 5 && <li className="ml-2">...and {recipe.ingredients.length - 5} more</li>}
+                    </ul>
+                  </div>
+                )}
                 {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
                   <div>
-                    <h4 className="font-semibold text-sm mb-1 text-primary">Identified in Photo:</h4>
-                    <p className="text-xs text-muted-foreground bg-background p-2 rounded">
+                    <h4 className="font-semibold text-sm mb-1 text-primary flex items-center gap-1.5">
+                      <Camera className="h-4 w-4" />From Photo:
+                    </h4>
+                    <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
                       {recipe.originalIngredients.join(', ')}
                     </p>
                   </div>
                 )}
-                <Link href={`/my-recipes/${recipe.id}`} passHref>
-                  <Button variant="default" size="sm" className="w-full">
-                    View
-                  </Button>
-                </Link>
               </CardContent>
-              <CardFooter className="p-4 border-t">
+              <CardFooter className="p-4 border-t flex flex-col sm:flex-row gap-2">
+                <Button asChild variant="default" size="sm" className="w-full">
+                  <Link href={`/my-recipes/${recipe.id}`}>View Recipe</Link>
+                </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm" className="w-full">
@@ -169,7 +174,7 @@ function MyRecipesPageContent() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteRecipe(recipe.id)} className="bg-destructive hover:bg-destructive/90">
+                      <AlertDialogAction onClick={() => handleDeleteRecipe(recipe.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
                         Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>
