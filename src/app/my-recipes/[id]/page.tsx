@@ -5,11 +5,11 @@ import { useAuth } from "@/contexts/auth-context";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getUserRecipeById } from "@/services/user-recipes";
-import type { SavedRecipe } from "@/types/recipe";
+import type { SavedRecipe, NutritionalInfo } from "@/types/recipe"; // Import NutritionalInfo
 import Image from "next/image";
-import { ImageOff, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Added Card components
-import { Badge } from "@/components/ui/badge"; // For potential tags or info
+import { ImageOff, Loader2, Utensils, Activity, Info } from "lucide-react"; // Added Activity, Info icons
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function RecipeDetailPage() {
     const { user } = useAuth();
@@ -19,7 +19,7 @@ export default function RecipeDetailPage() {
 
     useEffect(() => {
         if (!user || !id) {
-            if (!id) setLoading(false); // If no ID, nothing to load
+            if (!id) setLoading(false);
             return;
         }
 
@@ -31,6 +31,20 @@ export default function RecipeDetailPage() {
             })
             .finally(() => setLoading(false));
     }, [user, id]);
+
+    const renderNutritionalInfo = (ni: NutritionalInfo, title: string) => (
+        <div>
+            <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                <Activity className="h-6 w-6" /> {title}
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 bg-muted/20 p-4 rounded-md shadow-sm text-sm">
+                <div><strong className="block text-muted-foreground">Calories:</strong> {ni.calories}</div>
+                <div><strong className="block text-muted-foreground">Protein:</strong> {ni.protein}</div>
+                <div><strong className="block text-muted-foreground">Carbs:</strong> {ni.carbohydrates}</div>
+                <div><strong className="block text-muted-foreground">Fat:</strong> {ni.fat}</div>
+            </div>
+        </div>
+    );
 
     if (loading) {
         return (
@@ -68,19 +82,17 @@ export default function RecipeDetailPage() {
                        </div>
                     )}
                 </CardHeader>
-                <CardContent className="p-6 md:p-8 space-y-6">
+                <CardContent className="p-6 md:p-8 space-y-8">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">
-                            {recipe.recipeName}
+                        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 flex items-center gap-3">
+                           <Utensils className="h-8 w-8 md:h-9 md:w-9"/> {recipe.recipeName}
                         </h1>
                         {recipe.originalDishType && (
-                            <p className="text-md text-muted-foreground mb-4">
-                                (Inspired by: <em>{recipe.originalDishType}</em>)
-                            </p>
+                             <Badge variant="secondary" className="text-sm">Inspired by: {recipe.originalDishType}</Badge>
                         )}
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-6 text-center md:text-left border-t border-b py-4">
+                    <div className="grid md:grid-cols-3 gap-6 text-center md:text-left border-t border-b py-6">
                         {recipe.prepTime && (
                             <div>
                                 <h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-wider">Prep Time</h3>
@@ -101,17 +113,32 @@ export default function RecipeDetailPage() {
                         )}
                     </div>
                     
+                    {/* Nutritional Info for the Recipe */}
+                    {recipe.nutritionalInfo && renderNutritionalInfo(recipe.nutritionalInfo, "Recipe Nutritional Info (Per Serving)")}
+
+                    {/* Original Nutritional Info from Photo */}
+                    {recipe.originalNutritionalInfo && (recipe.originalNutritionalInfo.calories !== "N/A" || recipe.originalNutritionalInfo.protein !== "N/A") && ( // Show if not default
+                        <div className="mt-4 p-4 border border-dashed rounded-md bg-secondary/10">
+                             <h3 className="text-md font-semibold text-secondary-foreground mb-2 flex items-center gap-2">
+                                <Info className="h-5 w-5" /> Initial Estimate from Photo
+                             </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-xs">
+                                <div><strong className="block text-muted-foreground">Calories:</strong> {recipe.originalNutritionalInfo.calories}</div>
+                                <div><strong className="block text-muted-foreground">Protein:</strong> {recipe.originalNutritionalInfo.protein}</div>
+                                <div><strong className="block text-muted-foreground">Carbs:</strong> {recipe.originalNutritionalInfo.carbohydrates}</div>
+                                <div><strong className="block text-muted-foreground">Fat:</strong> {recipe.originalNutritionalInfo.fat}</div>
+                            </div>
+                        </div>
+                    )}
+
                     <div>
                         <h2 className="text-2xl font-semibold mb-3 text-primary">Ingredients</h2>
-                        <ul className="list-disc list-inside space-y-1 text-foreground/90 bg-muted/20 p-4 rounded-md shadow-sm">
+                        <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/20 p-4 rounded-md shadow-sm">
                             {recipe.ingredients.map((ingredient, idx) => <li key={idx} className="ml-4">{ingredient}</li>)}
                         </ul>
                          {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
                             <div className="mt-3">
-                                <h4 className="text-sm font-semibold text-muted-foreground">Originally identified from photo:</h4>
-                                <p className="text-xs text-muted-foreground">
-                                    {recipe.originalIngredients.join(', ')}
-                                </p>
+                                <Badge variant="outline">Identified from photo: {recipe.originalIngredients.join(', ')}</Badge>
                             </div>
                         )}
                     </div>
@@ -126,7 +153,7 @@ export default function RecipeDetailPage() {
                     {recipe.tips && recipe.tips.length > 0 && (
                         <div>
                             <h2 className="text-2xl font-semibold mb-3 text-primary">Tips & Variations</h2>
-                            <ul className="list-disc list-inside space-y-1 text-foreground/90 bg-muted/20 p-4 rounded-md shadow-sm">
+                            <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/20 p-4 rounded-md shadow-sm">
                                 {recipe.tips.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
                             </ul>
                         </div>
