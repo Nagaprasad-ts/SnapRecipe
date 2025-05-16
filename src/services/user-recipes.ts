@@ -3,7 +3,8 @@
 
 import { db } from "@/lib/firebase/config";
 import type { GenerateRecipeOutput } from "@/ai/flows/generate-recipe";
-import type { SavedRecipe } from "@/types/recipe";
+import type { IdentifyIngredientsOutput } from "@/ai/flows/identify-ingredients"; // Added
+import type { SavedRecipe, NutritionalInfo } from "@/types/recipe";
 import {
   collection,
   addDoc,
@@ -18,29 +19,33 @@ import {
 } from "firebase/firestore";
 
 // Firestore document limit is 1 MiB (1,048,576 bytes).
-// Estimate max string length for a Base64 data URI.
-// A 750KB Base64 string is roughly 560KB of binary data. This leaves ~250-300KB for other fields.
 const MAX_IMAGE_DATA_URI_STRING_LENGTH = 750 * 1024;
+
+const defaultNutritionalInfo: NutritionalInfo = {
+  calories: "N/A",
+  protein: "N/A",
+  carbohydrates: "N/A",
+  fat: "N/A",
+};
 
 export async function saveUserRecipe(
   userId: string,
-  recipeData: GenerateRecipeOutput,
-  recipeImage?: string,
-  originalIngredients?: string[],
-  originalDishType?: string
+  recipeData: GenerateRecipeOutput, // This now includes recipe's nutritionalInfo
+  uploadedImageDataUri?: string,
+  identifiedIngredientsData?: IdentifyIngredientsOutput // Pass the whole object
 ): Promise<string> {
   if (!userId) {
     console.error("User ID is required to save a recipe.");
     throw new Error("User ID is required to save a recipe.");
   }
 
-  if (recipeImage && recipeImage.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
-    const imageSizeMb = (recipeImage.length / (1024 * 1024)).toFixed(2); // Size of the data URI string in MB
+  if (uploadedImageDataUri && uploadedImageDataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
+    const imageSizeMb = (uploadedImageDataUri.length / (1024 * 1024)).toFixed(2);
     const estimatedBinarySizeMb = (
-      (recipeImage.length * (3 / 4)) /
+      (uploadedImageDataUri.length * (3 / 4)) /
       (1024 * 1024)
-    ).toFixed(2); // Estimated binary size
-    const errorMessage = `Recipe image data is too large (approx. ${estimatedBinarySizeMb}MB binary from ${imageSizeMb}MB data URI). Please use a smaller image. The total recipe, including image and text, must be under 1MB.`;
+    ).toFixed(2);
+    const errorMessage = `Recipe image data is too large (approx. ${estimatedBinarySizeMb}MB binary from ${imageSizeMb}MB data URI). Please use a smaller image.`;
     console.error("[saveUserRecipe] " + errorMessage);
     throw new Error(errorMessage);
   }
@@ -48,17 +53,30 @@ export async function saveUserRecipe(
   try {
     const recipesCollectionRef = collection(db, "users", userId, "recipes");
     const docData = {
-      ...recipeData, // This includes recipeName, ingredients, instructions, and optional tips, prepTime, cookTime, servings
+      // from recipeData (GenerateRecipeOutput)
+      recipeName: recipeData.recipeName,
+      ingredients: recipeData.ingredients,
+      instructions: recipeData.instructions,
+      prepTime: recipeData.prepTime || null,
+      cookTime: recipeData.cookTime || null,
+      servings: recipeData.servings || null,
+      tips: recipeData.tips || [],
+      nutritionalInfo: recipeData.nutritionalInfo || defaultNutritionalInfo, // Nutritional info for the recipe
+
+      // from other params
       userId,
       createdAt: serverTimestamp(),
-      recipeImage: recipeImage || null,
-      originalIngredients: originalIngredients || [],
-      originalDishType: originalDishType || "",
+      recipeImage: uploadedImageDataUri || null,
+      
+      // from identifiedIngredientsData (IdentifyIngredientsOutput)
+      originalIngredients: identifiedIngredientsData?.ingredients || [],
+      originalDishType: identifiedIngredientsData?.dishType || "",
+      originalNutritionalInfo: identifiedIngredientsData?.nutritionalInfo || defaultNutritionalInfo, // Nutritional info from photo
     };
 
     console.log(
       "[saveUserRecipe] Attempting to add document to Firestore with image URI length:",
-      recipeImage?.length
+      uploadedImageDataUri?.length
     );
     const docRef = await addDoc(recipesCollectionRef, docData);
     console.log(
@@ -118,6 +136,8 @@ export async function getUserRecipes(userId: string): Promise<SavedRecipe[]> {
         cookTime: data.cookTime || undefined,
         servings: data.servings || undefined,
         tips: data.tips || [],
+        nutritionalInfo: data.nutritionalInfo || defaultNutritionalInfo,
+        originalNutritionalInfo: data.originalNutritionalInfo || defaultNutritionalInfo,
       } as SavedRecipe;
     });
   } catch (error) {
@@ -179,7 +199,7 @@ export async function getUserRecipeById(
     if (data.createdAt instanceof Timestamp) {
       createdAtNumeric = data.createdAt.toMillis();
     } else {
-      createdAtNumeric = Date.now();
+      createdAtNumeric = Date.now(); // Fallback, should ideally not happen for new data
     }
 
     return {
@@ -196,6 +216,8 @@ export async function getUserRecipeById(
       cookTime: data.cookTime || undefined,
       servings: data.servings || undefined,
       tips: data.tips || [],
+      nutritionalInfo: data.nutritionalInfo || defaultNutritionalInfo,
+      originalNutritionalInfo: data.originalNutritionalInfo || defaultNutritionalInfo,
     } as SavedRecipe;
   } catch (error) {
     console.error(
