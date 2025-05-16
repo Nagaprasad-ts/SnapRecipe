@@ -10,11 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity } from 'lucide-react'; // Added Activity icon
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
-import type { NutritionalInfo } from '@/types/recipe'; // Ensure NutritionalInfo type is imported
+import type { NutritionalInfo } from '@/types/recipe';
+import { cn } from "@/lib/utils"; // Added import for cn
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
@@ -24,12 +25,10 @@ export default function SnapRecipePage() {
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImageDataUri, setUploadedImageDataUri] = useState<string | null>(null);
 
-  // This will now store the full IdentifyIngredientsOutput, including original nutritionalInfo
   const [identifiedData, setIdentifiedData] = useState<IdentifyIngredientsOutput | null>(null);
   const [editableIngredients, setEditableIngredients] = useState<string[]>([]);
   const [editableDishType, setEditableDishType] = useState<string>('');
 
-  // This will store GenerateRecipeOutput, which includes recipe's nutritionalInfo
   const [recipeData, setRecipeData] = useState<GenerateRecipeOutput | null>(null);
 
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
@@ -80,7 +79,7 @@ export default function SnapRecipePage() {
     setError(null);
     try {
       const result = await identifyIngredients({ photoDataUri: uploadedImageDataUri });
-      setIdentifiedData(result); // result includes originalNutritionalInfo
+      setIdentifiedData(result);
       setEditableIngredients(result.ingredients || []);
       setEditableDishType(result.dishType || '');
       setCurrentStep('edit');
@@ -123,7 +122,7 @@ export default function SnapRecipePage() {
     setError(null);
     try {
       const result = await generateRecipe({ ingredients: editableIngredients.filter(ing => ing.trim() !== ''), dishType: editableDishType });
-      setRecipeData(result); // result includes recipe's nutritionalInfo
+      setRecipeData(result);
       setCurrentStep('recipe');
       toast({ title: "Recipe Generated!", description: "Enjoy your custom recipe and its nutritional details!" });
     } catch (err) {
@@ -147,13 +146,11 @@ export default function SnapRecipePage() {
     }
     setIsSavingRecipe(true);
     try {
-      // recipeData contains the generated recipe's nutritionalInfo
-      // identifiedData contains the original photo's identified ingredients, dish type, and nutritionalInfo
       const recipeId = await saveUserRecipe(
         user.uid,
-        recipeData, // This includes recipeData.nutritionalInfo
+        recipeData, 
         uploadedImageDataUri || undefined,
-        identifiedData // Pass the whole identifiedData object which includes original nutritionalInfo
+        identifiedData 
       );
       toast({ title: "Recipe Saved!", description: `Your recipe (${recipeData.recipeName}) has been added to your collection.` });
     } catch (err) {
@@ -181,7 +178,13 @@ export default function SnapRecipePage() {
   };
 
   const AccentButton = (props: React.ComponentProps<typeof Button>) => (
-    <Button {...props} className={`bg-accent text-accent-foreground hover:bg-accent/90 ${props.className}`} />
+    <Button
+      {...props}
+      className={cn(
+        "bg-accent text-accent-foreground hover:bg-accent/90",
+        props.className
+      )}
+    />
   );
 
   const renderNutritionalInfo = (ni: NutritionalInfo, title: string) => (
