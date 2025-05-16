@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/auth-context';
 import { AuthButton } from '@/components/auth-button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button'; // Added import
 import { Menu } from 'lucide-react';
 
 const geistSans = Geist({
@@ -33,30 +34,29 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
         <AuthProvider>
-          <header className="px-12 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:block hidden">
-            <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
+          <header className="px-4 md:px-12 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between">
               <SnapRecipeLogo />
-              <AuthButton />
-            </div>
-          </header>
-          <header className="px-5 sticky top-0 z-50 w-full border-b-2 border-border/40 bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden block">
-            <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
-              <SnapRecipeLogo />
+              
+              {/* Desktop Auth/Nav Buttons */}
+              <div className="hidden md:flex">
+                <AuthButton />
+              </div>
 
               {/* Mobile Menu Button */}
-              <Sheet>
-                <SheetTrigger asChild>
-                  <button className="p-2">
-                    <Menu className="h-6 w-6" />
-                  </button>
-                </SheetTrigger>
-
-                <SheetContent side="left" className="w-64 p-4">
-                  <div className="flex flex-col gap-4">
-                    <AuthButton />
-                  </div>
-                </SheetContent>
-              </Sheet>
+              <div className="md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" className="p-2">
+                      <Menu className="h-6 w-6" />
+                      <span className="sr-only">Open menu</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-72 p-4">
+                    <AuthButton renderForSheet={true} />
+                  </SheetContent>
+                </Sheet>
+              </div>
             </div>
           </header>
           <main className="flex-1 justify-center items-center">
