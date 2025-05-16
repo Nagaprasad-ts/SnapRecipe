@@ -58,7 +58,7 @@ function MyRecipesPageContent() {
       toast({ variant: "destructive", title: "Error", description: "Could not delete the recipe. Please try again." });
     }
   };
-  
+
   if (!user) {
     // This case should ideally be handled by ProtectedRoute, but as a fallback:
     return <div className="text-center p-8">Please log in to view your recipes.</div>;
@@ -86,13 +86,13 @@ function MyRecipesPageContent() {
             <CardDescription>You haven&apos;t saved any SnapRecipes. Let&apos;s create some!</CardDescription>
           </CardHeader>
           <CardContent>
-            <Image 
-              src="https://picsum.photos/seed/recipes/400/250" 
-              alt="Empty recipe book" 
-              width={400} 
-              height={250} 
+            <Image
+              src="https://picsum.photos/seed/recipes/400/250"
+              alt="Empty recipe book"
+              width={400}
+              height={250}
               className="mx-auto rounded-md mb-4"
-              data-ai-hint="cooking book" 
+              data-ai-hint="cooking book"
             />
             <p className="mb-4 text-muted-foreground">
               Start by uploading a photo of your food on the homepage.
@@ -126,12 +126,12 @@ function MyRecipesPageContent() {
                 )}
               </CardHeader>
               <CardContent className="flex-grow space-y-3 p-4">
-                 <CardTitle className="text-xl flex items-center gap-2">
-                    <Utensils className="h-5 w-5 text-primary" />
-                    {recipe.recipeName}
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Utensils className="h-5 w-5 text-primary" />
+                  {recipe.recipeName}
                 </CardTitle>
                 {recipe.originalDishType && <CardDescription>Original dish type: {recipe.originalDishType}</CardDescription>}
-                
+
                 <div>
                   <h4 className="font-semibold text-sm mb-1 text-primary">Ingredients:</h4>
                   <ul className="list-disc list-inside text-xs text-muted-foreground max-h-24 overflow-y-auto bg-background p-2 rounded scrollbar-thin scrollbar-thumb-muted">
@@ -139,14 +139,14 @@ function MyRecipesPageContent() {
                     {recipe.ingredients.length > 5 && <li>...and {recipe.ingredients.length - 5} more</li>}
                   </ul>
                 </div>
-                 {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
-                   <div>
-                     <h4 className="font-semibold text-sm mb-1 text-primary">Identified in Photo:</h4>
-                     <p className="text-xs text-muted-foreground bg-background p-2 rounded">
-                       {recipe.originalIngredients.join(', ')}
-                     </p>
-                   </div>
-                 )}
+                {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1 text-primary">Identified in Photo:</h4>
+                    <p className="text-xs text-muted-foreground bg-background p-2 rounded">
+                      {recipe.originalIngredients.join(', ')}
+                    </p>
+                  </div>
+                )}
               </CardContent>
               <CardFooter className="p-4 border-t">
                 <AlertDialog>
