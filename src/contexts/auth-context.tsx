@@ -22,25 +22,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    setLoading(true); // Indicate that we are determining auth state.
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser); // firebaseUser will be null if not logged in or after logout
-      setLoading(false);   // Auth state determined.
+    const unsubscribe = auth.onIdTokenChanged((currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
     });
 
-    // Handle redirect sign-in attempt only once on initial load.
-    // onAuthStateChanged will ultimately reflect the user state from this or direct sign-in.
-    getRedirectResult(auth).catch((error) => {
-      // This error is often "auth/no-redirect-operation" if the page wasn't loaded from a redirect.
-      // It's generally safe to ignore this specific error unless debugging redirects.
-      if (error.code !== 'auth/no-redirect-operation') {
-        console.error("Error processing redirect result:", error);
-      }
-    });
-
-    return () => unsubscribe(); // Cleanup subscription
-  }, []); // Empty dependency array ensures this runs once on mount and cleans up on unmount.
-
+    return () => unsubscribe();
+  }, []);
 
   const signInWithGoogle = async () => {
     setLoading(true);
@@ -64,9 +52,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // setUser(null) and setLoading(false) will be handled by onAuthStateChanged
     } catch (error) {
       console.error("Error signing out:", error);
-      setLoading(false); // Ensure loading is false on error, if onAuthStateChanged doesn't fire
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return (
     <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOutUser }}>

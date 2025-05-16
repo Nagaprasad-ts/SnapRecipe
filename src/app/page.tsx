@@ -23,13 +23,13 @@ export default function SnapRecipePage() {
   const [currentStep, setCurrentStep] = useState<AppStep>('upload');
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImageDataUri, setUploadedImageDataUri] = useState<string | null>(null);
-  
+
   const [identifiedData, setIdentifiedData] = useState<IdentifyIngredientsOutput | null>(null);
   const [editableIngredients, setEditableIngredients] = useState<string[]>([]);
   const [editableDishType, setEditableDishType] = useState<string>('');
-  
+
   const [recipeData, setRecipeData] = useState<GenerateRecipeOutput | null>(null);
-  
+
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false);
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
@@ -90,7 +90,7 @@ export default function SnapRecipePage() {
       toast({
         variant: "destructive",
         title: "Identification Error",
-        description: `Failed to identify ingredients: ${errorMessage.substring(0,100)}`,
+        description: `Failed to identify ingredients: ${errorMessage.substring(0, 100)}`,
       });
     } finally {
       setIsLoadingIngredients(false);
@@ -131,7 +131,7 @@ export default function SnapRecipePage() {
       toast({
         variant: "destructive",
         title: "Recipe Generation Error",
-        description: `Failed to generate recipe: ${errorMessage.substring(0,100)}`,
+        description: `Failed to generate recipe: ${errorMessage.substring(0, 100)}`,
       });
     } finally {
       setIsLoadingRecipe(false);
@@ -164,7 +164,7 @@ export default function SnapRecipePage() {
         identifiedData?.dishType || ''
       );
       console.log("[handleSaveRecipe] Recipe saved successfully, ID:", recipeId);
-      toast({ title: "Recipe Saved!", description: `Your recipe (ID: ${recipeId.substring(0,6)}...) has been added to your collection.` });
+      toast({ title: "Recipe Saved!", description: `Your recipe (ID: ${recipeId.substring(0, 6)}...) has been added to your collection.` });
     } catch (err) {
       console.error("[handleSaveRecipe] Error caught while saving recipe:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while saving.";
@@ -189,13 +189,13 @@ export default function SnapRecipePage() {
     setRecipeData(null);
     setError(null);
   };
-  
+
   const AccentButton = (props: React.ComponentProps<typeof Button>) => (
     <Button {...props} className={`bg-accent text-accent-foreground hover:bg-accent/90 ${props.className}`} />
   );
 
   return (
-    <div className="container mx-auto p-4 md:p-8 flex flex-col items-center space-y-8">
+    <div className="container mx-auto p-4 md:p-8 flex flex-col items-center">
       {error && (
         <Alert variant="destructive" className="w-full max-w-2xl">
           <AlertTriangle className="h-4 w-4" />
@@ -214,11 +214,11 @@ export default function SnapRecipePage() {
             <Input id="imageUpload" type="file" accept="image/*" onChange={handleImageChange} className="text-base" />
             {uploadedImageDataUri && (
               <div className="mt-4 border rounded-md p-2 bg-muted/50">
-                <Image 
-                  src={uploadedImageDataUri} 
-                  alt="Uploaded food" 
-                  width={500} 
-                  height={300} 
+                <Image
+                  src={uploadedImageDataUri}
+                  alt="Uploaded food"
+                  width={500}
+                  height={300}
                   className="rounded-md object-contain mx-auto max-h-[300px] w-auto"
                   data-ai-hint="food photography"
                 />
@@ -243,11 +243,11 @@ export default function SnapRecipePage() {
           <CardContent className="space-y-6">
             {uploadedImageDataUri && (
               <div className="mb-4 border rounded-md p-2 bg-muted/50">
-                <Image 
-                  src={uploadedImageDataUri} 
-                  alt="Uploaded food" 
-                  width={500} 
-                  height={300} 
+                <Image
+                  src={uploadedImageDataUri}
+                  alt="Uploaded food"
+                  width={500}
+                  height={300}
                   className="rounded-md object-contain mx-auto max-h-[200px] w-auto"
                   data-ai-hint="food stillLife"
                 />
@@ -255,9 +255,9 @@ export default function SnapRecipePage() {
             )}
             <div className="space-y-2">
               <Label htmlFor="dishType" className="text-lg font-semibold">Dish Type</Label>
-              <Input 
-                id="dishType" 
-                value={editableDishType} 
+              <Input
+                id="dishType"
+                value={editableDishType}
                 onChange={(e) => setEditableDishType(e.target.value)}
                 placeholder="e.g., Salad, Soup, Pasta"
                 className="text-base"
@@ -267,8 +267,8 @@ export default function SnapRecipePage() {
               <h3 className="text-lg font-semibold">Ingredients</h3>
               {editableIngredients.map((ingredient, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <Input 
-                    value={ingredient} 
+                  <Input
+                    value={ingredient}
                     onChange={(e) => handleIngredientChange(index, e.target.value)}
                     placeholder="e.g., Tomato, 1 cup"
                     className="text-base flex-grow"
@@ -315,6 +315,26 @@ export default function SnapRecipePage() {
                   <li key={index} className="text-foreground/90 leading-relaxed">{step}</li>
                 ))}
               </ol>
+            </div>
+            <div className='flex flex-col gap-2 justify-start items-start'>
+              {recipeData.prepTime && (
+                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                  <h3 className="text-xl font-semibold mb-2 text-primary">Preparation Time:</h3>
+                  <p className="text-foreground/90">{recipeData.prepTime}</p>
+                </div>
+              )}
+              {recipeData.cookTime && (
+                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                  <h3 className="text-xl font-semibold mb-2 text-primary">Cooking Time:</h3>
+                  <p className="text-foreground/90">{recipeData.cookTime}</p>
+                </div>
+              )}
+              {recipeData.servings && (
+                <div className='flex flex-col sm:flex-row gap-2 justify-center items-center'>
+                  <h3 className="text-xl font-semibold mb-2 text-primary">Servings:</h3>
+                  <p className="text-foreground/90">{recipeData.servings}</p>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2">
