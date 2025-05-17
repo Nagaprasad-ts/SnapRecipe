@@ -39,6 +39,8 @@ function ProfilePageContent() {
   const [preferences, setPreferences] = useState<UserPreferences>({ dietaryRestrictions: [], preferredCuisines: [] });
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+
+  const [preferredCuisinesInput, setPreferredCuisinesInput] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +68,11 @@ function ProfilePageContent() {
         .finally(() => setIsLoadingPreferences(false));
     }
   }, [user, toast]);
+
+  // Sync local input string when preferences change (e.g., on mount or external update)
+  useEffect(() => {
+    setPreferredCuisinesInput((preferences.preferredCuisines || []).join(', '));
+  }, [preferences.preferredCuisines]);
 
   const handleDeleteRecipe = async (recipeId: string) => {
     if (!user) return;
@@ -95,8 +102,19 @@ function ProfilePageContent() {
   };
 
   const handlePreferredCuisinesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const cuisinesArray = event.target.value.split(',').map(c => c.trim()).filter(c => c);
-    setPreferences(prev => ({ ...prev, preferredCuisines: cuisinesArray }));
+    setPreferredCuisinesInput(event.target.value);
+  };
+
+  const handlePreferredCuisinesBlur = () => {
+    const cuisinesArray = preferredCuisinesInput
+      .split(',')
+      .map(c => c.trim())
+      .filter(c => c.length > 0);
+
+    setPreferences(prev => ({
+      ...prev,
+      preferredCuisines: cuisinesArray,
+    }));
   };
 
   const handleSavePreferences = async () => {
@@ -182,8 +200,9 @@ function ProfilePageContent() {
                 <Textarea
                   id="preferredCuisines"
                   placeholder="e.g., Italian, Mexican, Thai, Indian (comma-separated)"
-                  value={(preferences.preferredCuisines || []).join(', ')}
+                  value={preferredCuisinesInput}
                   onChange={handlePreferredCuisinesChange}
+                  onBlur={handlePreferredCuisinesBlur}
                   rows={3}
                   className="text-base"
                 />
