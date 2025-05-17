@@ -21,7 +21,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogTrigger, // Added missing import
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
 import { AccentButton } from '@/components/ui/accent-button';
