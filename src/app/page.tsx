@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Info } from 'lucide-react';
+import { generateRecipeImage, type GenerateRecipeImageOutput } from '@/ai/flows/generate-recipe-image'; // Added
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Info, ImageOff } from 'lucide-react'; // Added ImageOff
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
@@ -26,6 +27,7 @@ export default function SnapRecipePage() {
   const [currentStep, setCurrentStep] = useState<AppStep>('upload');
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImageDataUri, setUploadedImageDataUri] = useState<string | null>(null);
+  const [generatedRecipeImageUri, setGeneratedRecipeImageUri] = useState<string | null>(null); // Added
 
   const [identifiedData, setIdentifiedData] = useState<IdentifyIngredientsOutput | null>(null);
   const [editableIngredients, setEditableIngredients] = useState<string[]>([]);
@@ -35,6 +37,7 @@ export default function SnapRecipePage() {
 
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false); // Added
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +57,7 @@ export default function SnapRecipePage() {
     if (file) {
       setError(null);
       setUploadedImageFile(file);
+      setGeneratedRecipeImageUri(null); // Clear any previously generated image
       try {
         const dataUri = await fileToDataUri(file);
         setUploadedImageDataUri(dataUri);
@@ -121,12 +125,29 @@ export default function SnapRecipePage() {
       return;
     }
     setIsLoadingRecipe(true);
+    setGeneratedRecipeImageUri(null); // Clear previous image before generating new recipe text
     setError(null);
     try {
       const result = await generateRecipe({ ingredients: editableIngredients.filter(ing => ing.trim() !== ''), dishType: editableDishType });
       setRecipeData(result);
       setCurrentStep('recipe');
       toast({ title: "Recipe Generated!", description: "Enjoy your custom recipe and its nutritional details!" });
+
+      if (!uploadedImageDataUri && result.recipeName) { // If no user image, and recipe has a name, generate one
+        setIsGeneratingImage(true);
+        try {
+          const imageResult = await generateRecipeImage({ recipeName: result.recipeName });
+          setGeneratedRecipeImageUri(imageResult.imageDataUri);
+          toast({ title: "Recipe Image Generated!", description: "An image for your recipe has been created."});
+        } catch (imgErr) {
+          console.error("Error generating recipe image:", imgErr);
+          const imgErrMsg = imgErr instanceof Error ? imgErr.message : "Unknown image generation error.";
+          toast({ variant: "destructive", title: "Image Generation Error", description: "Could not generate an image for the recipe: " + imgErrMsg.substring(0,100) });
+        } finally {
+          setIsGeneratingImage(false);
+        }
+      }
+
     } catch (err) {
       console.error("Error generating recipe:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during recipe generation.";
@@ -147,11 +168,13 @@ export default function SnapRecipePage() {
       return;
     }
     setIsSavingRecipe(true);
+    const imageToSave = uploadedImageDataUri || generatedRecipeImageUri;
+
     try {
       await saveUserRecipe(
         user.uid,
         recipeData,
-        uploadedImageDataUri || undefined,
+        imageToSave || undefined,
         identifiedData || undefined
       );
       toast({ title: "Recipe Saved!", description: "Your recipe (" + recipeData.recipeName + ") has been added to your collection." });
@@ -172,11 +195,16 @@ export default function SnapRecipePage() {
     setCurrentStep('upload');
     setUploadedImageFile(null);
     setUploadedImageDataUri(null);
+    setGeneratedRecipeImageUri(null); // Reset generated image
     setIdentifiedData(null);
     setEditableIngredients([]);
     setEditableDishType('');
     setRecipeData(null);
     setError(null);
+    setIsLoadingIngredients(false);
+    setIsLoadingRecipe(false);
+    setIsGeneratingImage(false);
+    setIsSavingRecipe(false);
   };
 
   const TipsSectionContent = () => (
@@ -211,7 +239,7 @@ export default function SnapRecipePage() {
         <Card className="w-full shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><UploadCloud className="h-7 w-7" /> Upload Food Photo</CardTitle>
-            <CardDescription>Upload an image to identify ingredients and get an initial nutritional estimate.</CardDescription>
+            <CardDescription>Upload an image to identify ingredients and get an initial nutritional estimate. Or, skip and type ingredients later.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input id="imageUpload" type="file" accept="image/*" onChange={handleImageChange} className="text-base" />
@@ -228,20 +256,25 @@ export default function SnapRecipePage() {
               </div>
             )}
           </CardContent>
-          <CardFooter>
-            <AccentButton onClick={handleIdentifyIngredients} disabled={!uploadedImageFile || isLoadingIngredients} className="w-full">
+          <CardFooter className="flex flex-col sm:flex-row gap-2">
+             <Button variant="outline" onClick={() => { setUploadedImageDataUri(null); setUploadedImageFile(null); setCurrentStep('edit'); }} className="w-full sm:w-auto">
+              Skip Photo & Type Ingredients
+            </Button>
+            <AccentButton onClick={handleIdentifyIngredients} disabled={!uploadedImageFile || isLoadingIngredients} className="w-full sm:flex-grow">
               {isLoadingIngredients ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-              Identify Ingredients &amp; Nutrients
+              Identify From Photo
             </AccentButton>
           </CardFooter>
         </Card>
       )}
 
-      {currentStep === 'edit' && identifiedData && (
+      {currentStep === 'edit' && ( // identifiedData might be null if user skipped photo
         <Card className="w-full shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><ChefHat className="h-7 w-7" /> Review &amp; Adjust</CardTitle>
-            <CardDescription>Correct ingredients, dish type, and review initial nutritional estimates.</CardDescription>
+            <CardDescription>
+              {uploadedImageDataUri ? "Correct ingredients, dish type, and review initial nutritional estimates from your photo." : "Enter your ingredients and desired dish type."}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
@@ -259,13 +292,19 @@ export default function SnapRecipePage() {
                     />
                   </div>
                 )}
-                {identifiedData.nutritionalInfo && (
+                {identifiedData?.nutritionalInfo && (
                   <NutritionalInfoDisplay
                     nutritionalInfo={identifiedData.nutritionalInfo}
                     title="Estimated Nutrients (from Photo)"
                     icon={<Info className="h-6 w-6" />}
                     titleClassName="text-secondary text-xl"
+                    showDataBackground={false}
                   />
+                )}
+                 {!uploadedImageDataUri && (
+                  <div className="aspect-[4/3] w-full flex items-center justify-center bg-muted rounded-lg shadow-md" data-ai-hint="ingredient list empty state">
+                     <ShoppingBasket className="h-24 w-24 text-muted-foreground" />
+                  </div>
                 )}
               </div>
 
@@ -277,7 +316,7 @@ export default function SnapRecipePage() {
                     id="dishType"
                     value={editableDishType}
                     onChange={(e) => setEditableDishType(e.target.value)}
-                    placeholder="e.g., Salad, Soup, Pasta"
+                    placeholder="e.g., Stir-fry, Quick weeknight pasta, Hearty soup"
                     className="text-base"
                   />
                 </div>
@@ -288,7 +327,7 @@ export default function SnapRecipePage() {
                       <Input
                         value={ingredient}
                         onChange={(e) => handleIngredientChange(index, e.target.value)}
-                        placeholder="e.g., Tomato, 1 cup"
+                        placeholder="e.g., Chicken breast, 1 lb"
                         className="text-base flex-grow"
                       />
                       <Button variant="outline" size="icon" onClick={() => handleRemoveIngredient(index)} aria-label="Remove ingredient">
@@ -296,6 +335,7 @@ export default function SnapRecipePage() {
                       </Button>
                     </div>
                   ))}
+                   {editableIngredients.length === 0 && <p className="text-sm text-muted-foreground">No ingredients added yet. Click below to add some!</p>}
                   <Button variant="outline" onClick={handleAddIngredient} className="w-full border-dashed mt-3">
                     <Plus className="mr-2 h-4 w-4" /> Add Ingredient
                   </Button>
@@ -305,7 +345,7 @@ export default function SnapRecipePage() {
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2 pt-6">
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">Start Over</Button>
-            <AccentButton onClick={handleGenerateRecipe} disabled={isLoadingRecipe} className="w-full sm:flex-grow">
+            <AccentButton onClick={handleGenerateRecipe} disabled={isLoadingRecipe || editableIngredients.length === 0 || !editableDishType.trim()} className="w-full sm:flex-grow">
               {isLoadingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Utensils className="mr-2 h-4 w-4" />}
               Generate Recipe &amp; Nutrients
             </AccentButton>
@@ -325,8 +365,8 @@ export default function SnapRecipePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
               {/* Left Column */}
               <div className="lg:col-span-4 space-y-8">
-                {uploadedImageDataUri && (
-                  <div className="mb-4 border rounded-md p-2 bg-muted/50">
+                <div className="border rounded-md p-2 bg-muted/50">
+                  {uploadedImageDataUri ? (
                     <Image
                       src={uploadedImageDataUri}
                       alt="Original food item that inspired the recipe"
@@ -335,20 +375,40 @@ export default function SnapRecipePage() {
                       className="rounded-md object-contain mx-auto max-h-[250px] lg:max-h-[300px] w-auto"
                       data-ai-hint="food photography source"
                     />
-                  </div>
-                )}
+                  ) : isGeneratingImage ? (
+                    <div className="aspect-[4/3] w-full flex flex-col items-center justify-center bg-muted rounded-lg">
+                      <Loader2 className="h-12 w-12 animate-spin text-primary mb-2" />
+                      <p className="text-muted-foreground">Generating recipe image...</p>
+                    </div>
+                  ) : generatedRecipeImageUri ? (
+                    <Image
+                      src={generatedRecipeImageUri}
+                      alt={recipeData.recipeName || "Generated recipe image"}
+                      width={500}
+                      height={300}
+                      className="rounded-md object-contain mx-auto max-h-[250px] lg:max-h-[300px] w-auto"
+                      data-ai-hint="recipe delicious food"
+                    />
+                  ) : (
+                    <div className="aspect-[4/3] w-full flex items-center justify-center bg-muted rounded-lg" data-ai-hint="recipe placeholder cooking">
+                      <ImageOff className="h-24 w-24 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
                 <RecipeMetaDisplay
                   prepTime={recipeData.prepTime}
                   cookTime={recipeData.cookTime}
                   servings={recipeData.servings}
                 />
-                 {identifiedData && identifiedData.nutritionalInfo && (recipeData.nutritionalInfo.calories !== "N/A" || recipeData.nutritionalInfo.protein !== "N/A") && (
-                  <div className="p-4 border border-dashed border-input rounded-lg bg-secondary/5">
+                 {identifiedData?.nutritionalInfo && (recipeData.nutritionalInfo.calories !== "N/A" || recipeData.nutritionalInfo.protein !== "N/A") && (
+                  <div className="p-4 border border-dashed border-input rounded-lg bg-secondary/10">
                     <NutritionalInfoDisplay
                       nutritionalInfo={identifiedData.nutritionalInfo}
                       title="Initial Estimate (from Photo)"
                       icon={<Info className="h-5 w-5" />}
                       titleClassName="text-lg text-secondary"
+                      showDataBackground={false}
                     />
                   </div>
                 )}
@@ -366,6 +426,7 @@ export default function SnapRecipePage() {
                     title="Recipe Nutritional Info (Per Serving)"
                     icon={<Activity className="h-6 w-6" />}
                     titleClassName="text-secondary text-2xl"
+                    showDataBackground={true}
                   />
                 )}
                 
