@@ -24,6 +24,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { Label } from '@/components/ui/label'; // Added
@@ -97,7 +98,7 @@ function ProfilePageContent() {
     const cuisinesArray = event.target.value.split(',').map(c => c.trim()).filter(c => c);
     setPreferences(prev => ({ ...prev, preferredCuisines: cuisinesArray }));
   };
-  
+
   const handleSavePreferences = async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in to save preferences." });
@@ -115,7 +116,7 @@ function ProfilePageContent() {
       setIsSavingPreferences(false);
     }
   };
-  
+
   if (!user) {
     return <div className="text-center">Please log in to view your profile.</div>;
   }
@@ -127,7 +128,7 @@ function ProfilePageContent() {
       <Card className="w-full shadow-xl">
         <CardHeader className="flex flex-col items-center gap-4 sm:flex-row sm:items-start text-center sm:text-left">
           <Avatar className="h-24 w-24 text-4xl">
-            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} data-ai-hint="user profile"/>
+            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} data-ai-hint="user profile" />
             <AvatarFallback>{userInitial}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
@@ -208,7 +209,7 @@ function ProfilePageContent() {
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
       ) : recipes.length === 0 ? (
-         <Card className="w-full text-center shadow-lg">
+        <Card className="w-full text-center shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-center gap-2 text-2xl text-primary">
               <ChefHat className="h-7 w-7" /> No Recipes Yet!
@@ -255,12 +256,12 @@ function ProfilePageContent() {
                 )}
               </CardHeader>
               <CardContent className="flex-grow space-y-3 p-4">
-                 <CardTitle className="mt-2 text-xl flex items-center gap-2 text-primary">
-                    <Utensils className="h-5 w-5" />
-                    {recipe.recipeName}
+                <CardTitle className="mt-2 text-xl flex items-center gap-2 text-primary">
+                  <Utensils className="h-5 w-5" />
+                  {recipe.recipeName}
                 </CardTitle>
                 {recipe.originalDishType && <CardDescription className="text-sm text-muted-foreground">Original dish type: {recipe.originalDishType}</CardDescription>}
-                
+
                 {/* Minimal ingredients display - details on recipe page */}
               </CardContent>
               <CardFooter className="p-4 border-t flex flex-col sm:flex-row gap-2">
