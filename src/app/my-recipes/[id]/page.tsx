@@ -83,9 +83,9 @@ export default function RecipeDetailPage() {
                             <Utensils className="h-8 w-8 md:h-9 md:w-9" /> {recipe.recipeName}
                         </h1>
                         {recipe.originalDishType && (
-                             <p className="text-md text-muted-foreground">
+                             <div className="text-md text-muted-foreground">
                                 Here's your custom-generated recipe and its nutritional information! Original dish type: <Badge variant="secondary" className="text-sm ml-1">{recipe.originalDishType}</Badge>
-                             </p>
+                             </div>
                         )}
                          {!recipe.originalDishType && (
                              <p className="text-md text-muted-foreground">
