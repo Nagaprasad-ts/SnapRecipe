@@ -9,14 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb } from 'lucide-react';
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Info } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
 import { NutritionalInfoDisplay } from '@/components/nutritional-info-display';
 import { RecipeMetaDisplay } from '@/components/recipe-meta-display';
 import { AccentButton } from '@/components/ui/accent-button';
-import { Button } from '@/components/ui/button'; 
+import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 
 type AppStep = 'upload' | 'edit' | 'recipe';
@@ -89,11 +89,11 @@ export default function SnapRecipePage() {
     } catch (err) {
       console.error("Error identifying ingredients:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during ingredient identification.";
-      setError(`Failed to identify ingredients: ${errorMessage}`);
+      setError("Failed to identify ingredients: " + errorMessage);
       toast({
         variant: "destructive",
         title: "Identification Error",
-        description: `Failed to identify ingredients: ${errorMessage.substring(0, 100)}`,
+        description: "Failed to identify ingredients: " + errorMessage.substring(0, 100),
       });
     } finally {
       setIsLoadingIngredients(false);
@@ -130,11 +130,11 @@ export default function SnapRecipePage() {
     } catch (err) {
       console.error("Error generating recipe:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during recipe generation.";
-      setError(`Failed to generate recipe: ${errorMessage}`);
+      setError("Failed to generate recipe: " + errorMessage);
       toast({
         variant: "destructive",
         title: "Recipe Generation Error",
-        description: `Failed to generate recipe: ${errorMessage.substring(0, 100)}`,
+        description: "Failed to generate recipe: " + errorMessage.substring(0, 100),
       });
     } finally {
       setIsLoadingRecipe(false);
@@ -154,14 +154,14 @@ export default function SnapRecipePage() {
         uploadedImageDataUri || undefined,
         identifiedData || undefined
       );
-      toast({ title: "Recipe Saved!", description: `Your recipe (${recipeData.recipeName}) has been added to your collection.` });
+      toast({ title: "Recipe Saved!", description: "Your recipe (" + recipeData.recipeName + ") has been added to your collection." });
     } catch (err) {
       console.error("[handleSaveRecipe] Error caught while saving recipe:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred while saving.";
       toast({
         variant: "destructive",
         title: "Save Error",
-        description: `Failed to save recipe: ${errorMessage}. Check console for details.`,
+        description: "Failed to save recipe: " + errorMessage + ". Check console for details.",
       });
     } finally {
       setIsSavingRecipe(false);
@@ -182,7 +182,7 @@ export default function SnapRecipePage() {
   return (
     <div className="flex flex-col items-center w-full">
       {error && (
-        <div className="w-full"> {/* Removed max-width constraint */}
+        <div className="w-full">
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
@@ -192,7 +192,7 @@ export default function SnapRecipePage() {
       )}
 
       {currentStep === 'upload' && (
-        <Card className="w-full shadow-xl"> {/* Removed max-width constraint */}
+        <Card className="w-full shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><UploadCloud className="h-7 w-7" /> Upload Food Photo</CardTitle>
             <CardDescription>Upload an image to identify ingredients and get an initial nutritional estimate.</CardDescription>
@@ -215,139 +215,177 @@ export default function SnapRecipePage() {
           <CardFooter>
             <AccentButton onClick={handleIdentifyIngredients} disabled={!uploadedImageFile || isLoadingIngredients} className="w-full">
               {isLoadingIngredients ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-              Identify Ingredients & Nutrients
+              Identify Ingredients &amp; Nutrients
             </AccentButton>
           </CardFooter>
         </Card>
       )}
 
       {currentStep === 'edit' && identifiedData && (
-        <Card className="w-full shadow-xl"> {/* Removed max-width constraint */}
+        <Card className="w-full shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><ChefHat className="h-7 w-7" /> Review &amp; Adjust</CardTitle>
             <CardDescription>Correct ingredients, dish type, and review initial nutritional estimates.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {uploadedImageDataUri && (
-              <div className="mb-4 border rounded-md p-2 bg-muted/50">
-                <Image
-                  src={uploadedImageDataUri}
-                  alt="Uploaded food"
-                  width={500}
-                  height={300}
-                  className="rounded-md object-contain mx-auto max-h-[200px] w-auto"
-                  data-ai-hint="food stillLife"
-                />
-              </div>
-            )}
-            {identifiedData.nutritionalInfo && (
-              <NutritionalInfoDisplay
-                nutritionalInfo={identifiedData.nutritionalInfo}
-                title="Estimated Nutrients (from Photo)"
-                icon={<Activity className="h-6 w-6" />}
-                titleClassName="text-primary" 
-              />
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="dishType" className="text-lg font-semibold text-primary">Dish Type</Label>
-              <Input
-                id="dishType"
-                value={editableDishType}
-                onChange={(e) => setEditableDishType(e.target.value)}
-                placeholder="e.g., Salad, Soup, Pasta"
-                className="text-base"
-              />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-primary">Ingredients</h3>
-              {editableIngredients.map((ingredient, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input
-                    value={ingredient}
-                    onChange={(e) => handleIngredientChange(index, e.target.value)}
-                    placeholder="e.g., Tomato, 1 cup"
-                    className="text-base flex-grow"
+            <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
+              {/* Left Column: Image and Initial Nutrients */}
+              <div className="lg:col-span-4 space-y-6">
+                {uploadedImageDataUri && (
+                  <div className="mb-4 border rounded-md p-2 bg-muted/50">
+                    <Image
+                      src={uploadedImageDataUri}
+                      alt="Uploaded food"
+                      width={500}
+                      height={300}
+                      className="rounded-md object-contain mx-auto max-h-[250px] lg:max-h-[300px] w-auto"
+                      data-ai-hint="food stillLife"
+                    />
+                  </div>
+                )}
+                {identifiedData.nutritionalInfo && (
+                  <NutritionalInfoDisplay
+                    nutritionalInfo={identifiedData.nutritionalInfo}
+                    title="Estimated Nutrients (from Photo)"
+                    icon={<Info className="h-6 w-6" />}
+                    titleClassName="text-primary text-xl"
                   />
-                  <Button variant="outline" size="icon" onClick={() => handleRemoveIngredient(index)} aria-label="Remove ingredient">
-                    <X className="h-4 w-4" />
+                )}
+              </div>
+
+              {/* Right Column: Dish Type and Ingredients */}
+              <div className="lg:col-span-8 space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="dishType" className="text-lg font-semibold text-primary">Dish Type</Label>
+                  <Input
+                    id="dishType"
+                    value={editableDishType}
+                    onChange={(e) => setEditableDishType(e.target.value)}
+                    placeholder="e.g., Salad, Soup, Pasta"
+                    className="text-base"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-primary mb-2">Ingredients</h3>
+                  {editableIngredients.map((ingredient, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        value={ingredient}
+                        onChange={(e) => handleIngredientChange(index, e.target.value)}
+                        placeholder="e.g., Tomato, 1 cup"
+                        className="text-base flex-grow"
+                      />
+                      <Button variant="outline" size="icon" onClick={() => handleRemoveIngredient(index)} aria-label="Remove ingredient">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button variant="outline" onClick={handleAddIngredient} className="w-full border-dashed mt-3">
+                    <Plus className="mr-2 h-4 w-4" /> Add Ingredient
                   </Button>
                 </div>
-              ))}
-              <Button variant="outline" onClick={handleAddIngredient} className="w-full border-dashed">
-                <Plus className="mr-2 h-4 w-4" /> Add Ingredient
-              </Button>
+              </div>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row gap-2">
+          <CardFooter className="flex flex-col sm:flex-row gap-2 pt-6">
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">Start Over</Button>
             <AccentButton onClick={handleGenerateRecipe} disabled={isLoadingRecipe} className="w-full sm:flex-grow">
               {isLoadingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Utensils className="mr-2 h-4 w-4" />}
-              Generate Recipe & Nutrients
+              Generate Recipe &amp; Nutrients
             </AccentButton>
           </CardFooter>
         </Card>
       )}
 
       {currentStep === 'recipe' && recipeData && (
-        <Card className="w-full shadow-xl"> {/* Removed max-width constraint */}
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl font-bold text-primary">
+        <Card className="w-full shadow-xl">
+          <CardHeader className="text-center lg:text-left">
+            <CardTitle className="flex items-center justify-center lg:justify-start gap-3 text-2xl md:text-3xl font-bold text-primary">
               <Utensils className="h-7 w-7 md:h-8 md:w-8" /> {recipeData.recipeName}
             </CardTitle>
             <CardDescription>Here&apos;s your custom-generated recipe and its nutritional information!</CardDescription>
           </CardHeader>
           <CardContent className="space-y-8 text-justify">
-            
-            <RecipeMetaDisplay
-              prepTime={recipeData.prepTime}
-              cookTime={recipeData.cookTime}
-              servings={recipeData.servings}
-            />
-
-            {recipeData.nutritionalInfo && (
-              <NutritionalInfoDisplay
-                nutritionalInfo={recipeData.nutritionalInfo}
-                title="Recipe Nutritional Info (Per Serving)"
-                icon={<Activity className="h-6 w-6" />}
-                titleClassName="text-primary" 
-              />
-            )}
-            
-            <div>
-              <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
-                <ShoppingBasket className="h-6 w-6" />Ingredients:
-              </h3>
-              <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                {recipeData.ingredients.map((item, index) => (
-                  <li key={index} className="ml-4 leading-relaxed">{item}</li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
-                <ListChecks className="h-6 w-6" />Instructions:
-              </h3>
-              <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                {recipeData.instructions.map((step, index) => (
-                  <li key={index} className="ml-4 leading-relaxed">{step}</li>
-                ))}
-              </ol>
-            </div>
-
-            {recipeData.tips && recipeData.tips.length > 0 && (
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
-                  <Lightbulb className="h-6 w-6" />Tips & Variations:
-                </h3>
-                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                  {recipeData.tips.map((tip, index) => (
-                    <li key={index} className="ml-4 leading-relaxed">{tip}</li>
-                  ))}
-                </ul>
+            <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
+              {/* Left Column */}
+              <div className="lg:col-span-4 space-y-8">
+                {uploadedImageDataUri && (
+                  <div className="mb-4 border rounded-md p-2 bg-muted/50">
+                    <Image
+                      src={uploadedImageDataUri}
+                      alt="Original food item that inspired the recipe"
+                      width={500}
+                      height={300}
+                      className="rounded-md object-contain mx-auto max-h-[250px] lg:max-h-[300px] w-auto"
+                      data-ai-hint="food photography source"
+                    />
+                  </div>
+                )}
+                <RecipeMetaDisplay
+                  prepTime={recipeData.prepTime}
+                  cookTime={recipeData.cookTime}
+                  servings={recipeData.servings}
+                />
+                 {identifiedData && identifiedData.nutritionalInfo && (recipeData.nutritionalInfo.calories !== "N/A" || recipeData.nutritionalInfo.protein !== "N/A") && (
+                  <div className="p-4 border border-dashed border-input rounded-lg bg-secondary/5">
+                    <NutritionalInfoDisplay
+                      nutritionalInfo={identifiedData.nutritionalInfo}
+                      title="Initial Estimate (from Photo)"
+                      icon={<Info className="h-5 w-5" />}
+                      titleClassName="text-lg text-secondary-foreground"
+                    />
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Right Column */}
+              <div className="lg:col-span-8 space-y-8">
+                {recipeData.nutritionalInfo && (
+                  <NutritionalInfoDisplay
+                    nutritionalInfo={recipeData.nutritionalInfo}
+                    title="Recipe Nutritional Info (Per Serving)"
+                    icon={<Activity className="h-6 w-6" />}
+                    titleClassName="text-primary text-2xl"
+                  />
+                )}
+                
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                    <ShoppingBasket className="h-6 w-6" />Ingredients:
+                  </h3>
+                  <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                    {recipeData.ingredients.map((item, index) => (
+                      <li key={index} className="ml-4 leading-relaxed">{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                    <ListChecks className="h-6 w-6" />Instructions:
+                  </h3>
+                  <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                    {recipeData.instructions.map((step, index) => (
+                      <li key={index} className="ml-4 leading-relaxed">{step}</li>
+                    ))}
+                  </ol>
+                </div>
+
+                {recipeData.tips && recipeData.tips.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                      <Lightbulb className="h-6 w-6" />Tips &amp; Variations:
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                      {recipeData.tips.map((tip, index) => (
+                        <li key={index} className="ml-4 leading-relaxed">{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row gap-2">
+          <CardFooter className="flex flex-col sm:flex-row gap-2 pt-6">
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">
               Create Another
             </Button>
@@ -363,5 +401,5 @@ export default function SnapRecipePage() {
     </div>
   );
 }
-
+    
     

@@ -16,11 +16,8 @@ import {
     ShoppingBasket,
     ListChecks,
     Lightbulb,
-    Timer,
-    Flame,
-    Users
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Removed CardTitle as it's not directly used here but in sub-components
 import { Badge } from "@/components/ui/badge";
 import { NutritionalInfoDisplay } from "@/components/nutritional-info-display";
 import { RecipeMetaDisplay } from "@/components/recipe-meta-display";
@@ -65,7 +62,7 @@ export default function RecipeDetailPage() {
 
     return (
         <div className="w-full flex justify-center"> 
-            <Card className="w-full shadow-xl overflow-hidden bg-card"> {/* Removed max-w-4xl */}
+            <Card className="w-full shadow-xl overflow-hidden bg-card">
                 <CardHeader className="p-0">
                     {recipe.recipeImage ? (
                         <div className="relative w-full aspect-[16/9] md:aspect-[2/1]">
@@ -86,8 +83,9 @@ export default function RecipeDetailPage() {
                     )}
                 </CardHeader>
                 <CardContent className="p-6 md:p-8 space-y-8">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 flex items-center gap-3">
+                    {/* Title and Badge remain above the grid */}
+                    <div className="text-center lg:text-left mb-6 lg:mb-8">
+                        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 flex items-center justify-center lg:justify-start gap-3">
                             <Utensils className="h-8 w-8 md:h-9 md:w-9" /> {recipe.recipeName}
                         </h1>
                         {recipe.originalDishType && (
@@ -95,65 +93,74 @@ export default function RecipeDetailPage() {
                         )}
                     </div>
 
-                    <RecipeMetaDisplay
-                        prepTime={recipe.prepTime}
-                        cookTime={recipe.cookTime}
-                        servings={recipe.servings}
-                    />
-                    
-                    {recipe.nutritionalInfo && (
-                        <NutritionalInfoDisplay
-                            nutritionalInfo={recipe.nutritionalInfo}
-                            title="Recipe Nutritional Info (Per Serving)"
-                            icon={<Activity className="h-6 w-6" />}
-                            titleClassName="text-primary text-2xl" 
-                        />
-                    )}
-
-                    {recipe.originalNutritionalInfo && (recipe.originalNutritionalInfo.calories !== "N/A" || recipe.originalNutritionalInfo.protein !== "N/A") && (
-                         <div className="mt-6 p-4 border border-dashed border-input rounded-lg bg-secondary/5">
-                            <NutritionalInfoDisplay
-                                nutritionalInfo={recipe.originalNutritionalInfo}
-                                title="Initial Estimate (from Photo)"
-                                icon={<Info className="h-5 w-5" />}
-                                titleClassName="text-lg text-secondary-foreground" 
+                    {/* Grid for two-column layout on larger screens */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
+                        {/* Left Column */}
+                        <div className="lg:col-span-4 space-y-8">
+                            <RecipeMetaDisplay
+                                prepTime={recipe.prepTime}
+                                cookTime={recipe.cookTime}
+                                servings={recipe.servings}
                             />
+                            
+                            {recipe.originalNutritionalInfo && (recipe.originalNutritionalInfo.calories !== "N/A" || recipe.originalNutritionalInfo.protein !== "N/A") && (
+                                 <div className="p-4 border border-dashed border-input rounded-lg bg-secondary/5">
+                                    <NutritionalInfoDisplay
+                                        nutritionalInfo={recipe.originalNutritionalInfo}
+                                        title="Initial Estimate (from Photo)"
+                                        icon={<Info className="h-5 w-5" />}
+                                        titleClassName="text-lg text-secondary-foreground" 
+                                    />
+                                </div>
+                            )}
                         </div>
-                    )}
 
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
-                            <ShoppingBasket className="h-6 w-6" /> Ingredients
-                        </h2>
-                        <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                            {recipe.ingredients.map((ingredient, idx) => <li key={idx} className="ml-4">{ingredient}</li>)}
-                        </ul>
-                        {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
-                            <div className="mt-3">
-                                <Badge variant="outline">Identified from photo: {recipe.originalIngredients.join(', ')}</Badge>
+                        {/* Right Column */}
+                        <div className="lg:col-span-8 space-y-8">
+                            {recipe.nutritionalInfo && (
+                                <NutritionalInfoDisplay
+                                    nutritionalInfo={recipe.nutritionalInfo}
+                                    title="Recipe Nutritional Info (Per Serving)"
+                                    icon={<Activity className="h-6 w-6" />}
+                                    titleClassName="text-primary text-2xl" 
+                                />
+                            )}
+
+                            <div>
+                                <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                                    <ShoppingBasket className="h-6 w-6" /> Ingredients
+                                </h2>
+                                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                                    {recipe.ingredients.map((ingredient, idx) => <li key={idx} className="ml-4">{ingredient}</li>)}
+                                </ul>
+                                {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
+                                    <div className="mt-3">
+                                        <Badge variant="outline">Identified from photo: {recipe.originalIngredients.join(', ')}</Badge>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
 
-                    <div>
-                        <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
-                            <ListChecks className="h-6 w-6" /> Instructions
-                        </h2>
-                        <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                            {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
-                        </ol>
-                    </div>
+                            <div>
+                                <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                                    <ListChecks className="h-6 w-6" /> Instructions
+                                </h2>
+                                <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                                    {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
+                                </ol>
+                            </div>
 
-                    {recipe.tips && recipe.tips.length > 0 && (
-                        <div>
-                            <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
-                                <Lightbulb className="h-6 w-6" /> Tips & Variations
-                            </h2>
-                            <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                                {recipe.tips.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
-                            </ul>
+                            {recipe.tips && recipe.tips.length > 0 && (
+                                <div>
+                                    <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                                        <Lightbulb className="h-6 w-6" /> Tips & Variations
+                                    </h2>
+                                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                                        {recipe.tips.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </CardContent>
             </Card>
         </div>
