@@ -15,9 +15,12 @@ import {
     Info,
     ShoppingBasket,
     ListChecks,
-    Lightbulb
+    Lightbulb,
+    Timer,
+    Flame,
+    Users
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Removed CardTitle as it's not directly used
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NutritionalInfoDisplay } from "@/components/nutritional-info-display";
 import { RecipeMetaDisplay } from "@/components/recipe-meta-display";
@@ -30,7 +33,7 @@ export default function RecipeDetailPage() {
 
     useEffect(() => {
         if (!user || !id) {
-            if (!id) setLoading(false); // Ensure loading stops if ID is missing
+            if (!id) setLoading(false); 
             return;
         }
 
@@ -61,9 +64,8 @@ export default function RecipeDetailPage() {
     }
 
     return (
-        // Max width for the card itself, but page can be full width
         <div className="w-full flex justify-center"> 
-            <Card className="w-full max-w-4xl shadow-xl overflow-hidden bg-card">
+            <Card className="w-full shadow-xl overflow-hidden bg-card"> {/* Removed max-w-4xl */}
                 <CardHeader className="p-0">
                     {recipe.recipeImage ? (
                         <div className="relative w-full aspect-[16/9] md:aspect-[2/1]">
@@ -114,7 +116,7 @@ export default function RecipeDetailPage() {
                                 nutritionalInfo={recipe.originalNutritionalInfo}
                                 title="Initial Estimate (from Photo)"
                                 icon={<Info className="h-5 w-5" />}
-                                titleClassName="text-lg text-secondary-foreground" // Using secondary foreground for this title
+                                titleClassName="text-lg text-secondary-foreground" 
                             />
                         </div>
                     )}
@@ -157,3 +159,5 @@ export default function RecipeDetailPage() {
         </div>
     );
 }
+
+    

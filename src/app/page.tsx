@@ -17,6 +17,7 @@ import { NutritionalInfoDisplay } from '@/components/nutritional-info-display';
 import { RecipeMetaDisplay } from '@/components/recipe-meta-display';
 import { AccentButton } from '@/components/ui/accent-button';
 import { Button } from '@/components/ui/button'; 
+import { cn } from "@/lib/utils";
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
@@ -151,7 +152,7 @@ export default function SnapRecipePage() {
         user.uid,
         recipeData,
         uploadedImageDataUri || undefined,
-        identifiedData || undefined 
+        identifiedData || undefined
       );
       toast({ title: "Recipe Saved!", description: `Your recipe (${recipeData.recipeName}) has been added to your collection.` });
     } catch (err) {
@@ -178,13 +179,10 @@ export default function SnapRecipePage() {
     setError(null);
   };
 
-  // Center content for all steps
-  const contentWrapperClass = "w-full max-w-2xl mx-auto";
-
   return (
     <div className="flex flex-col items-center w-full">
       {error && (
-        <div className={contentWrapperClass}>
+        <div className="w-full"> {/* Removed max-width constraint */}
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
@@ -194,7 +192,7 @@ export default function SnapRecipePage() {
       )}
 
       {currentStep === 'upload' && (
-        <Card className={`${contentWrapperClass} shadow-xl`}>
+        <Card className="w-full shadow-xl"> {/* Removed max-width constraint */}
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><UploadCloud className="h-7 w-7" /> Upload Food Photo</CardTitle>
             <CardDescription>Upload an image to identify ingredients and get an initial nutritional estimate.</CardDescription>
@@ -224,7 +222,7 @@ export default function SnapRecipePage() {
       )}
 
       {currentStep === 'edit' && identifiedData && (
-        <Card className={`${contentWrapperClass} shadow-xl`}>
+        <Card className="w-full shadow-xl"> {/* Removed max-width constraint */}
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><ChefHat className="h-7 w-7" /> Review &amp; Adjust</CardTitle>
             <CardDescription>Correct ingredients, dish type, and review initial nutritional estimates.</CardDescription>
@@ -291,7 +289,7 @@ export default function SnapRecipePage() {
       )}
 
       {currentStep === 'recipe' && recipeData && (
-        <Card className={`${contentWrapperClass} shadow-xl`}>
+        <Card className="w-full shadow-xl"> {/* Removed max-width constraint */}
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl font-bold text-primary">
               <Utensils className="h-7 w-7 md:h-8 md:w-8" /> {recipeData.recipeName}
@@ -365,3 +363,5 @@ export default function SnapRecipePage() {
     </div>
   );
 }
+
+    
