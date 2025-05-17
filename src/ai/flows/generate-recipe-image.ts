@@ -38,7 +38,8 @@ const generateRecipeImageFlow = ai.defineFlow(
     // Construct a more descriptive prompt for better image results
     const prompt = `Generate a vibrant, appetizing, and photo-realistic image of a dish titled "${input.recipeName}". 
     Focus on a clear view of the food itself, making it look delicious and well-plated. 
-    The image should be high quality, suitable for a recipe website. Avoid text overlays, people, or hands in the image. 
+    The image should be high quality, suitable for a recipe website, and optimized for web use with a smaller file size, ideally under 500KB if possible. 
+    Avoid text overlays, people, or hands in the image. 
     Emphasize the colors and textures of the ingredients.`;
 
     const { media } = await ai.generate({

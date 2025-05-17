@@ -21,10 +21,13 @@ import { AccentButton } from '@/components/ui/accent-button';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import { ShoppingListDialog } from '@/components/shopping-list-dialog';
-import type { UserPreferences } from '@/types/user'; // Added for user preferences
-import { getUserPreferences } from '@/services/user-profile'; // Added for user preferences
+import type { UserPreferences } from '@/types/user';
+import { getUserPreferences } from '@/services/user-profile';
 
 type AppStep = 'upload' | 'edit' | 'recipe';
+
+// Firestore document limit is 1 MiB (1,048,576 bytes). Data URI string length.
+const MAX_IMAGE_DATA_URI_STRING_LENGTH = 750 * 1024; // Approx 560KB binary data
 
 export default function SnapRecipePage() {
   const { user } = useAuth();
@@ -47,11 +50,10 @@ export default function SnapRecipePage() {
   const [isTweakingRecipe, setIsTweakingRecipe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null); // Added for user preferences
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
 
   const { toast } = useToast();
 
-  // Fetch user preferences when user logs in or page loads with a logged-in user
   useEffect(() => {
     if (user && user.uid) {
       getUserPreferences(user.uid)
@@ -62,10 +64,9 @@ export default function SnapRecipePage() {
         })
         .catch(err => {
           console.error("Failed to load user preferences on homepage:", err);
-          // Optional: toast an error, but maybe less critical on homepage than profile
         });
     } else {
-      setUserPreferences(null); // Clear preferences if user logs out
+      setUserPreferences(null);
     }
   }, [user]);
 
@@ -82,10 +83,22 @@ export default function SnapRecipePage() {
     const file = event.target.files?.[0];
     if (file) {
       setError(null);
-      setUploadedImageFile(file);
-      setGeneratedRecipeImageUri(null); 
+      setGeneratedRecipeImageUri(null);
       try {
         const dataUri = await fileToDataUri(file);
+        if (dataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
+          setError("Uploaded image is too large. Please choose a file smaller than ~500KB.");
+          toast({
+            variant: "destructive",
+            title: "Image Too Large",
+            description: "Please upload an image smaller than ~500KB.",
+          });
+          setUploadedImageDataUri(null);
+          setUploadedImageFile(null);
+          event.target.value = ''; // Clear the file input
+          return;
+        }
+        setUploadedImageFile(file);
         setUploadedImageDataUri(dataUri);
       } catch (err) {
         console.error("Error converting file to data URI:", err);
@@ -151,12 +164,11 @@ export default function SnapRecipePage() {
       return;
     }
     setIsLoadingRecipe(true);
-    setGeneratedRecipeImageUri(null); 
+    setGeneratedRecipeImageUri(null);
     setError(null);
     try {
-      // Construct input for generating a new recipe, including user preferences if available
-      const recipeInput: any = { 
-        ingredients: editableIngredients.filter(ing => ing.trim() !== ''), 
+      const recipeInput: any = {
+        ingredients: editableIngredients.filter(ing => ing.trim() !== ''),
         dishType: editableDishType.trim()
       };
 
@@ -168,22 +180,27 @@ export default function SnapRecipePage() {
           recipeInput.preferredCuisines = userPreferences.preferredCuisines;
         }
       }
-      
+
       const result = await generateRecipe(recipeInput);
       setRecipeData(result);
       setCurrentStep('recipe');
       toast({ title: "Recipe Generated!", description: "Enjoy your custom recipe and its nutritional details!" });
 
-      if (!uploadedImageDataUri && result.recipeName) { 
+      if (!uploadedImageDataUri && result.recipeName) {
         setIsGeneratingImage(true);
         try {
           const imageResult = await generateRecipeImage({ recipeName: result.recipeName });
-          setGeneratedRecipeImageUri(imageResult.imageDataUri);
-          toast({ title: "Recipe Image Generated!", description: "An image for your recipe has been created."});
+          if (imageResult.imageDataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
+            toast({ variant: "destructive", title: "AI Image Too Large", description: "AI-generated image was too large to display and save. Proceeding without it." });
+            setGeneratedRecipeImageUri(null);
+          } else {
+            setGeneratedRecipeImageUri(imageResult.imageDataUri);
+            toast({ title: "Recipe Image Generated!", description: "An image for your recipe has been created." });
+          }
         } catch (imgErr) {
           console.error("Error generating recipe image:", imgErr);
           const imgErrMsg = imgErr instanceof Error ? imgErr.message : "Unknown image generation error.";
-          toast({ variant: "destructive", title: "Image Generation Error", description: "Could not generate an image for the recipe: " + imgErrMsg.substring(0,100) });
+          toast({ variant: "destructive", title: "Image Generation Error", description: "Could not generate an image for the recipe: " + imgErrMsg.substring(0, 100) });
         } finally {
           setIsGeneratingImage(false);
         }
@@ -216,17 +233,21 @@ export default function SnapRecipePage() {
         tweakInstruction: tweakRequestInput.trim(),
       });
       setRecipeData(tweakedRecipe);
-      setTweakRequestInput(''); // Clear input after successful tweak
+      setTweakRequestInput('');
       toast({ title: "Recipe Updated!", description: "The recipe has been modified based on your request." });
 
-      // Generate a new image for the tweaked recipe if no user photo was initially uploaded
       if (!uploadedImageDataUri && tweakedRecipe.recipeName) {
         setIsGeneratingImage(true);
-        setGeneratedRecipeImageUri(null); // Clear previous AI image
+        setGeneratedRecipeImageUri(null);
         try {
           const imageResult = await generateRecipeImage({ recipeName: tweakedRecipe.recipeName });
-          setGeneratedRecipeImageUri(imageResult.imageDataUri);
-          toast({ title: "New Recipe Image Generated!", description: "An image for your updated recipe has been created."});
+           if (imageResult.imageDataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
+            toast({ variant: "destructive", title: "AI Image Too Large", description: "AI-generated image for tweaked recipe was too large. Proceeding without it." });
+            setGeneratedRecipeImageUri(null);
+          } else {
+            setGeneratedRecipeImageUri(imageResult.imageDataUri);
+            toast({ title: "New Recipe Image Generated!", description: "An image for your updated recipe has been created."});
+          }
         } catch (imgErr) {
           console.error("Error generating new recipe image:", imgErr);
           const imgErrMsg = imgErr instanceof Error ? imgErr.message : "Unknown image generation error.";
@@ -256,15 +277,26 @@ export default function SnapRecipePage() {
       return;
     }
     setIsSavingRecipe(true);
-    const imageToSave = uploadedImageDataUri || generatedRecipeImageUri;
+    
+    // Prioritize uploaded image, then AI generated, then null
+    let imageToSave = uploadedImageDataUri;
+    if (!imageToSave && generatedRecipeImageUri) {
+        // Double check size for AI image here too before attempting to save
+        if (generatedRecipeImageUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
+            toast({ variant: "destructive", title: "AI Image Too Large to Save", description: "The AI-generated image is too large and will not be saved with the recipe." });
+            imageToSave = null; // Explicitly nullify if too large
+        } else {
+            imageToSave = generatedRecipeImageUri;
+        }
+    }
+
 
     try {
       await saveUserRecipe(
         user.uid,
         recipeData,
         imageToSave || undefined,
-        // identifiedData contains original photo details, which should be preserved
-        identifiedData || undefined 
+        identifiedData || undefined
       );
       toast({ title: "Recipe Saved!", description: "Your recipe (" + recipeData.recipeName + ") has been added to your collection." });
     } catch (err) {
@@ -284,7 +316,7 @@ export default function SnapRecipePage() {
     setCurrentStep('upload');
     setUploadedImageFile(null);
     setUploadedImageDataUri(null);
-    setGeneratedRecipeImageUri(null); 
+    setGeneratedRecipeImageUri(null);
     setIdentifiedData(null);
     setEditableIngredients([]);
     setEditableDishType('');
@@ -296,7 +328,6 @@ export default function SnapRecipePage() {
     setIsGeneratingImage(false);
     setIsSavingRecipe(false);
     setIsTweakingRecipe(false);
-    // setUserPreferences(null); // Optionally clear if you want them re-fetched or based on app logic
   };
 
   const TipsSectionContent = () => (
@@ -316,7 +347,7 @@ export default function SnapRecipePage() {
 
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+    <div className="w-full py-6 md:py-8">
       {error && (
         <div className="w-full">
           <Alert variant="destructive" className="mb-6">
@@ -335,6 +366,7 @@ export default function SnapRecipePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <Input id="imageUpload" type="file" accept="image/*" onChange={handleImageChange} className="text-base" />
+            <p className="text-sm text-muted-foreground">Recommended maximum image size: ~500KB.</p>
             {uploadedImageDataUri && (
               <div className="mt-4 border rounded-md p-2 bg-muted/50">
                 <Image
@@ -360,7 +392,7 @@ export default function SnapRecipePage() {
         </Card>
       )}
 
-      {currentStep === 'edit' && ( 
+      {currentStep === 'edit' && (
         <Card className="w-full shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><ChefHat className="h-7 w-7" /> Review &amp; Adjust</CardTitle>
@@ -368,7 +400,7 @@ export default function SnapRecipePage() {
               {uploadedImageDataUri ? "Correct ingredients, dish type, and review initial nutritional estimates from your photo." : "Enter your ingredients and desired dish type."}
               {user && userPreferences && (userPreferences.dietaryRestrictions.length > 0 || userPreferences.preferredCuisines.length > 0) && (
                 <span className="block mt-1 text-sm text-accent">
-                  Your preferences will be applied for new recipes: 
+                  Your preferences will be applied for new recipes:
                   {userPreferences.dietaryRestrictions.length > 0 && ` Restrictions (${userPreferences.dietaryRestrictions.join(", ")})`}
                   {userPreferences.preferredCuisines.length > 0 && ` Cuisines (${userPreferences.preferredCuisines.join(", ")})`}.
                 </span>
@@ -377,7 +409,7 @@ export default function SnapRecipePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
-              
+
               <div className="lg:col-span-4 space-y-6">
                 {uploadedImageDataUri && (
                   <div className="mb-4 border rounded-md p-2 bg-muted/50">
@@ -407,7 +439,7 @@ export default function SnapRecipePage() {
                 )}
               </div>
 
-              
+
               <div className="lg:col-span-8 space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="dishType" className="text-lg font-semibold text-primary">Dish Type</Label>
@@ -460,9 +492,9 @@ export default function SnapRecipePage() {
             </CardTitle>
             <CardDescription>Here&apos;s your custom-generated recipe and its nutritional information!</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-8 text-justify">
+          <CardContent className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
-              
+
               <div className="lg:col-span-4 space-y-8">
                 <div className="border rounded-md p-2 bg-muted/50">
                   {uploadedImageDataUri ? (
@@ -511,26 +543,26 @@ export default function SnapRecipePage() {
                     />
                   </div>
                 )}
-                
+
                 <div className="hidden lg:block">
                     <TipsSectionContent />
                 </div>
               </div>
 
-              
+
               <div className="lg:col-span-8 space-y-8">
                 {recipeData.nutritionalInfo && (
                   <NutritionalInfoDisplay
                     nutritionalInfo={recipeData.nutritionalInfo}
                     title="Recipe Nutritional Info (Per Serving)"
                     icon={<Activity className="h-6 w-6" />}
-                    titleClassName="text-secondary text-2xl" // Lime green for nutritional info
+                    titleClassName="text-secondary text-2xl"
                     showDataBackground={true}
                   />
                 )}
-                
+
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-3))] flex items-center gap-2"> {/* Orange for Ingredients */}
+                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-3))] flex items-center gap-2">
                     <ShoppingBasket className="h-6 w-6" />Ingredients:
                   </h3>
                   <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -540,7 +572,7 @@ export default function SnapRecipePage() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-4))] flex items-center gap-2"> {/* Purple for Instructions */}
+                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-4))] flex items-center gap-2">
                     <ListChecks className="h-6 w-6" />Instructions:
                   </h3>
                   <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -549,12 +581,11 @@ export default function SnapRecipePage() {
                     ))}
                   </ol>
                 </div>
-                
-                <div className="lg:hidden"> {/* Tips for mobile, shown last */}
+
+                <div className="lg:hidden">
                     <TipsSectionContent />
                 </div>
-                
-                {/* Tweak Recipe Section */}
+
                 <div className="pt-6 border-t border-border">
                     <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
                         <Edit3 className="h-6 w-6" /> Customize this Recipe
@@ -566,8 +597,8 @@ export default function SnapRecipePage() {
                         className="mb-3 text-base"
                         rows={3}
                     />
-                    <AccentButton 
-                        onClick={handleApplyTweak} 
+                    <AccentButton
+                        onClick={handleApplyTweak}
                         disabled={isTweakingRecipe || !tweakRequestInput.trim()}
                         className="w-full sm:w-auto"
                     >
@@ -584,7 +615,7 @@ export default function SnapRecipePage() {
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">
               Create Another
             </Button>
-            
+
             {user && (
               <ShoppingListDialog recipeName={recipeData.recipeName} ingredients={recipeData.ingredients}>
                 <Button variant="outline" className="w-full sm:w-auto">
