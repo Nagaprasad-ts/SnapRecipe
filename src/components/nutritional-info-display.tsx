@@ -3,20 +3,21 @@
 
 import type { NutritionalInfo } from '@/types/recipe';
 import type React from 'react';
+import { cn } from "@/lib/utils";
 
 interface NutritionalInfoDisplayProps {
   nutritionalInfo: NutritionalInfo;
   title: string;
   icon: React.ReactNode;
-  titleClassName?: string; // Allow custom classes for title for specific page overrides
+  titleClassName?: string; 
 }
 
 export function NutritionalInfoDisplay({ nutritionalInfo: ni, title, icon, titleClassName }: NutritionalInfoDisplayProps) {
   return (
     <div>
       <h3 className={cn(
-        "text-xl font-semibold mb-3 text-primary flex items-center gap-2",
-        titleClassName // Apply custom class if provided, otherwise default to text-primary
+        "text-xl font-semibold mb-3 flex items-center gap-2",
+        titleClassName || "text-primary" // Default to primary if no custom class
       )}>
         {icon} {title}
       </h3>
@@ -29,7 +30,3 @@ export function NutritionalInfoDisplay({ nutritionalInfo: ni, title, icon, title
     </div>
   );
 }
-
-// Helper function from utils.ts if not already global or easily importable
-// For simplicity, if cn is not available, this can be simple string concatenation
-const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(' ');

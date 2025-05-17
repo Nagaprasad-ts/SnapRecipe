@@ -109,14 +109,14 @@ export default function RecipeDetailPage() {
                                         nutritionalInfo={recipe.originalNutritionalInfo}
                                         title="Initial Estimate (from Photo)"
                                         icon={<Info className="h-5 w-5" />}
-                                        titleClassName="text-lg text-secondary-foreground" 
+                                        titleClassName="text-lg text-secondary" 
                                     />
                                 </div>
                             )}
 
                             {recipe.tips && recipe.tips.length > 0 && (
                                 <div>
-                                    <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                                    <h2 className="text-2xl font-semibold mb-3 text-accent flex items-center gap-2">
                                         <Lightbulb className="h-6 w-6" /> Tips & Variations
                                     </h2>
                                     <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -133,12 +133,12 @@ export default function RecipeDetailPage() {
                                     nutritionalInfo={recipe.nutritionalInfo}
                                     title="Recipe Nutritional Info (Per Serving)"
                                     icon={<Activity className="h-6 w-6" />}
-                                    titleClassName="text-primary text-2xl" 
+                                    titleClassName="text-secondary text-2xl" 
                                 />
                             )}
 
                             <div>
-                                <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                                <h2 className="text-2xl font-semibold mb-3 text-[hsl(var(--chart-3))] flex items-center gap-2">
                                     <ShoppingBasket className="h-6 w-6" /> Ingredients
                                 </h2>
                                 <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -152,7 +152,7 @@ export default function RecipeDetailPage() {
                             </div>
 
                             <div>
-                                <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                                <h2 className="text-2xl font-semibold mb-3 text-[hsl(var(--chart-4))] flex items-center gap-2">
                                     <ListChecks className="h-6 w-6" /> Instructions
                                 </h2>
                                 <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">

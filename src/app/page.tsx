@@ -248,7 +248,7 @@ export default function SnapRecipePage() {
                     nutritionalInfo={identifiedData.nutritionalInfo}
                     title="Estimated Nutrients (from Photo)"
                     icon={<Info className="h-6 w-6" />}
-                    titleClassName="text-primary text-xl"
+                    titleClassName="text-secondary text-xl"
                   />
                 )}
               </div>
@@ -266,7 +266,7 @@ export default function SnapRecipePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-primary mb-2">Ingredients</h3>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--chart-3))] mb-2">Ingredients</h3>
                   {editableIngredients.map((ingredient, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Input
@@ -332,13 +332,13 @@ export default function SnapRecipePage() {
                       nutritionalInfo={identifiedData.nutritionalInfo}
                       title="Initial Estimate (from Photo)"
                       icon={<Info className="h-5 w-5" />}
-                      titleClassName="text-lg text-secondary-foreground"
+                      titleClassName="text-lg text-secondary"
                     />
                   </div>
                 )}
                 {recipeData.tips && recipeData.tips.length > 0 && (
                   <div>
-                    <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                    <h3 className="text-xl font-semibold mb-3 text-accent flex items-center gap-2">
                       <Lightbulb className="h-6 w-6" />Tips &amp; Variations:
                     </h3>
                     <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -357,12 +357,12 @@ export default function SnapRecipePage() {
                     nutritionalInfo={recipeData.nutritionalInfo}
                     title="Recipe Nutritional Info (Per Serving)"
                     icon={<Activity className="h-6 w-6" />}
-                    titleClassName="text-primary text-2xl"
+                    titleClassName="text-secondary text-2xl"
                   />
                 )}
                 
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-3))] flex items-center gap-2">
                     <ShoppingBasket className="h-6 w-6" />Ingredients:
                   </h3>
                   <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -372,7 +372,7 @@ export default function SnapRecipePage() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-4))] flex items-center gap-2">
                     <ListChecks className="h-6 w-6" />Instructions:
                   </h3>
                   <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -400,5 +400,3 @@ export default function SnapRecipePage() {
     </div>
   );
 }
-    
-    
