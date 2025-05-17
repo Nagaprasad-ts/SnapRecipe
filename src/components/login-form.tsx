@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import Image from 'next/image';
 
-export function LoginPage() {
+export function LoginPage() { // This is the form component, kept name as LoginPage for now
     const { user, loading, signInWithGoogle } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -33,27 +33,26 @@ export function LoginPage() {
     };
 
     return (
-        <div className="container mx-auto flex min-h-[calc(100vh-12rem)] items-center justify-center p-4">
-            <Card className="w-full max-w-md shadow-xl">
-                <CardHeader className="items-center text-center">
-                    <Image src="/assets/google-logo.svg" alt="Google Logo" width={48} height={48} data-ai-hint="logo google" className="mb-4" />
-                    <CardTitle className="text-2xl">Login to SnapRecipe</CardTitle>
-                    <CardDescription>Access your saved recipes and more by signing in.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button onClick={handleGoogleSignIn} disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-                        {loading ? (
-                            <LogIn className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <LogIn className="mr-2 h-4 w-4" />
-                        )}
-                        Sign in with Google
-                    </Button>
-                </CardContent>
-                <CardFooter className="text-center text-sm text-muted-foreground">
-                    <p>New to SnapRecipe? Signing in will create an account for you.</p>
-                </CardFooter>
-            </Card>
-        </div>
+        // Removed container and specific height/centering classes as the page itself will handle it.
+        <Card className="w-full max-w-md shadow-xl">
+            <CardHeader className="items-center text-center">
+                <Image src="/assets/google-logo.svg" alt="Google Logo" width={48} height={48} data-ai-hint="logo google" className="mb-4" />
+                <CardTitle className="text-2xl">Login to SnapRecipe</CardTitle>
+                <CardDescription>Access your saved recipes and more by signing in.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button onClick={handleGoogleSignIn} disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                    {loading ? (
+                        <LogIn className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <LogIn className="mr-2 h-4 w-4" />
+                    )}
+                    Sign in with Google
+                </Button>
+            </CardContent>
+            <CardFooter className="text-center text-sm text-muted-foreground">
+                <p>New to SnapRecipe? Signing in will create an account for you.</p>
+            </CardFooter>
+        </Card>
     );
 }

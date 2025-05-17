@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Link from 'next/link';
+import { AccentButton } from '@/components/ui/accent-button';
 
 function MyRecipesPageContent() {
   const { user } = useAuth();
@@ -60,18 +61,18 @@ function MyRecipesPageContent() {
   };
 
   if (!user) {
-    return <div className="text-center p-8">Please log in to view your recipes.</div>;
+    return <div className="text-center">Please log in to view your recipes.</div>;
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
+    <div className="w-full"> {/* Adjusted to remove redundant container/padding */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <ChefHat className="h-8 w-8 text-primary" /> My SnapRecipes
+        <h1 className="text-3xl font-bold flex items-center gap-2 text-primary">
+          <ChefHat className="h-8 w-8" /> My SnapRecipes
         </h1>
-        <Button asChild>
+        <AccentButton asChild>
           <Link href="/">Create New Recipe</Link>
-        </Button>
+        </AccentButton>
       </div>
 
       {isLoadingRecipes ? (
@@ -81,8 +82,8 @@ function MyRecipesPageContent() {
       ) : recipes.length === 0 ? (
         <Card className="w-full max-w-2xl mx-auto text-center shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-              <ChefHat className="h-7 w-7 text-primary" /> No Recipes Yet!
+            <CardTitle className="flex items-center justify-center gap-2 text-2xl text-primary">
+              <ChefHat className="h-7 w-7" /> No Recipes Yet!
             </CardTitle>
             <CardDescription>You haven&apos;t saved any SnapRecipes. Let&apos;s create some!</CardDescription>
           </CardHeader>
@@ -92,7 +93,7 @@ function MyRecipesPageContent() {
               alt="Empty recipe book"
               width={400}
               height={250}
-              className="mx-auto rounded-md mb-4 bg-muted"
+              className="mx-auto rounded-md mb-4 bg-muted shadow"
               data-ai-hint="cooking book"
             />
             <p className="mb-4 text-muted-foreground">
@@ -100,9 +101,9 @@ function MyRecipesPageContent() {
             </p>
           </CardContent>
           <CardFooter className="justify-center">
-            <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <AccentButton asChild size="lg">
               <Link href="/">Create Your First Recipe</Link>
-            </Button>
+            </AccentButton>
           </CardFooter>
         </Card>
       ) : (
@@ -115,8 +116,8 @@ function MyRecipesPageContent() {
                     <Image
                       src={recipe.recipeImage}
                       alt={recipe.recipeName || "Recipe image"}
-                      layout="fill"
-                      objectFit="cover"
+                      fill
+                      style={{ objectFit: "cover" }}
                       data-ai-hint="recipe food"
                     />
                   </div>

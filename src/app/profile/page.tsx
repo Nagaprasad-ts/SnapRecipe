@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link"; // Added Link for View Recipe button
 
 function ProfilePageContent() {
   const { user, signOutUser } = useAuth();
@@ -60,33 +61,32 @@ function ProfilePageContent() {
   };
   
   if (!user) {
-    // This case should ideally be handled by ProtectedRoute, but as a fallback:
-    return <div className="text-center p-8">Please log in to view your profile.</div>;
+    return <div className="text-center">Please log in to view your profile.</div>;
   }
 
   const userInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : <ChefHat size={20} />;
 
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <Card className="w-full max-w-4xl mx-auto shadow-xl mb-8">
-        <CardHeader className="flex flex-row items-center gap-4">
-          <Avatar className="h-20 w-20">
+    <div className="w-full"> {/* Adjusted to remove redundant container/padding */}
+      <Card className="w-full max-w-2xl mx-auto shadow-xl mb-8">
+        <CardHeader className="flex flex-col items-center gap-4 sm:flex-row sm:items-start text-center sm:text-left">
+          <Avatar className="h-24 w-24 text-4xl">
             <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
             <AvatarFallback>{userInitial}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-3xl">{user.displayName || 'User Profile'}</CardTitle>
             <CardDescription className="text-lg">{user.email}</CardDescription>
           </div>
         </CardHeader>
-        <CardFooter>
+        <CardFooter className="justify-center sm:justify-start">
           <Button variant="outline" onClick={signOutUser}>
             Log Out
           </Button>
         </CardFooter>
       </Card>
 
-      <h2 className="text-2xl font-semibold mb-6 text-center md:text-left">My Saved Recipes</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-center md:text-left text-primary">My Saved Recipes</h2>
       {isLoadingRecipes ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -96,47 +96,53 @@ function ProfilePageContent() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recipes.map((recipe) => (
-            <Card key={recipe.id} className="flex flex-col">
-              <CardHeader>
+            <Card key={recipe.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
+              <CardHeader className="p-0">
                 {recipe.recipeImage ? (
                   <div className="aspect-video w-full relative rounded-t-md overflow-hidden bg-muted">
                     <Image
                       src={recipe.recipeImage}
                       alt={recipe.recipeName || "Recipe image"}
-                      layout="fill"
-                      objectFit="cover"
-                       data-ai-hint="recipe food"
+                      fill
+                      style={{ objectFit: "cover" }}
+                      data-ai-hint="recipe food"
                     />
                   </div>
                 ) : (
-                  <div className="aspect-video w-full flex items-center justify-center bg-muted rounded-t-md">
+                  <div className="aspect-video w-full flex items-center justify-center bg-muted rounded-t-md" data-ai-hint="recipe placeholder">
                     <ImageOff className="h-16 w-16 text-muted-foreground" />
                   </div>
                 )}
-                 <CardTitle className="mt-4 text-xl flex items-center gap-2">
-                    <Utensils className="h-5 w-5 text-primary" />
+              </CardHeader>
+              <CardContent className="flex-grow space-y-3 p-4">
+                 <CardTitle className="mt-2 text-xl flex items-center gap-2 text-primary">
+                    <Utensils className="h-5 w-5" />
                     {recipe.recipeName}
                 </CardTitle>
-                {recipe.originalDishType && <CardDescription>Original dish type: {recipe.originalDishType}</CardDescription>}
-              </CardHeader>
-              <CardContent className="flex-grow space-y-3">
-                <div>
-                  <h4 className="font-semibold text-sm mb-1">Ingredients:</h4>
-                  <ul className="list-disc list-inside text-xs text-muted-foreground max-h-24 overflow-y-auto bg-background p-2 rounded">
-                    {recipe.ingredients.slice(0, 5).map((ing, i) => <li key={i}>{ing}</li>)}
-                    {recipe.ingredients.length > 5 && <li>...and more</li>}
-                  </ul>
-                </div>
+                {recipe.originalDishType && <CardDescription className="text-sm">Original dish type: {recipe.originalDishType}</CardDescription>}
+                
+                {recipe.ingredients && recipe.ingredients.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1">Ingredients:</h4>
+                    <ul className="list-disc list-inside text-xs text-muted-foreground max-h-24 overflow-y-auto bg-muted/30 p-2 rounded scrollbar-thin scrollbar-thumb-muted-foreground/50">
+                      {recipe.ingredients.slice(0, 5).map((ing, i) => <li key={i} className="ml-2">{ing}</li>)}
+                      {recipe.ingredients.length > 5 && <li className="ml-2">...and more</li>}
+                    </ul>
+                  </div>
+                )}
                  {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
                    <div>
                      <h4 className="font-semibold text-sm mb-1">Identified in Photo:</h4>
-                     <p className="text-xs text-muted-foreground bg-background p-2 rounded">
+                     <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
                        {recipe.originalIngredients.join(', ')}
                      </p>
                    </div>
                  )}
               </CardContent>
-              <CardFooter>
+              <CardFooter className="p-4 border-t flex flex-col sm:flex-row gap-2">
+                <Button asChild variant="default" size="sm" className="w-full">
+                  <Link href={`/my-recipes/${recipe.id}`}>View Recipe</Link>
+                </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm" className="w-full">
@@ -152,7 +158,7 @@ function ProfilePageContent() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteRecipe(recipe.id)}>
+                      <AlertDialogAction onClick={() => handleDeleteRecipe(recipe.id)} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
                         Delete
                       </AlertDialogAction>
                     </AlertDialogFooter>

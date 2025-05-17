@@ -3,19 +3,21 @@
 
 import { useState, type ChangeEvent } from 'react';
 import Image from 'next/image';
-import { Button } from "@/components/ui/button";
+// Button removed as AccentButton will be used
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Timer, Flame, Users } from 'lucide-react';
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
-import type { NutritionalInfo } from '@/types/recipe';
-import { cn } from "@/lib/utils";
+import { NutritionalInfoDisplay } from '@/components/nutritional-info-display';
+import { RecipeMetaDisplay } from '@/components/recipe-meta-display';
+import { AccentButton } from '@/components/ui/accent-button';
+import { Button } from '@/components/ui/button'; // Keep for non-accent buttons like Start Over & Add Ingredient
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
@@ -146,7 +148,7 @@ export default function SnapRecipePage() {
     }
     setIsSavingRecipe(true);
     try {
-      const recipeId = await saveUserRecipe(
+      await saveUserRecipe(
         user.uid,
         recipeData,
         uploadedImageDataUri || undefined,
@@ -177,32 +179,8 @@ export default function SnapRecipePage() {
     setError(null);
   };
 
-  const AccentButton = (props: React.ComponentProps<typeof Button>) => (
-    <Button
-      {...props}
-      className={cn(
-        "bg-accent text-accent-foreground hover:bg-accent/90",
-        props.className
-      )}
-    />
-  );
-
-  const renderNutritionalInfo = (ni: NutritionalInfo, title: string, icon: React.ReactNode) => (
-    <div>
-      <h3 className="text-xl font-semibold mb-2 text-primary flex items-center gap-2">
-        {icon} {title}
-      </h3>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2 bg-muted/30 p-4 rounded-lg text-sm">
-        <p><strong className="font-medium text-muted-foreground">Calories:</strong> {ni.calories}</p>
-        <p><strong className="font-medium text-muted-foreground">Protein:</strong> {ni.protein}</p>
-        <p><strong className="font-medium text-muted-foreground">Carbs:</strong> {ni.carbohydrates}</p>
-        <p><strong className="font-medium text-muted-foreground">Fat:</strong> {ni.fat}</p>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="container mx-auto p-4 md:p-8 flex flex-col items-center">
+    <div className="flex flex-col items-center w-full"> {/* Adjusted to remove redundant container/padding */}
       {error && (
         <Alert variant="destructive" className="w-full max-w-2xl mb-6">
           <AlertTriangle className="h-4 w-4" />
@@ -260,7 +238,13 @@ export default function SnapRecipePage() {
                 />
               </div>
             )}
-            {identifiedData.nutritionalInfo && renderNutritionalInfo(identifiedData.nutritionalInfo, "Estimated Nutrients (from Photo)", <Activity className="h-6 w-6" />)}
+            {identifiedData.nutritionalInfo && (
+              <NutritionalInfoDisplay
+                nutritionalInfo={identifiedData.nutritionalInfo}
+                title="Estimated Nutrients (from Photo)"
+                icon={<Activity className="h-6 w-6" />}
+              />
+            )}
             <div className="space-y-2">
               <Label htmlFor="dishType" className="text-lg font-semibold">Dish Type</Label>
               <Input
@@ -272,7 +256,7 @@ export default function SnapRecipePage() {
               />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Ingredients</h3>
+              <h3 className="text-lg font-semibold text-primary">Ingredients</h3>
               {editableIngredients.map((ingredient, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <Input
@@ -311,39 +295,25 @@ export default function SnapRecipePage() {
           </CardHeader>
           <CardContent className="space-y-8 text-justify">
             
-          {(recipeData.prepTime || recipeData.cookTime || recipeData.servings) && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 py-4">
-                {recipeData.prepTime && (
-                    <div className="flex flex-col items-center p-3 bg-muted/30 rounded-lg">
-                        <Timer className="h-7 w-7 text-primary mb-1.5" />
-                        <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Prep Time</h3>
-                        <p className="text-lg font-medium text-foreground">{recipeData.prepTime}</p>
-                    </div>
-                )}
-                {recipeData.cookTime && (
-                    <div className="flex flex-col items-center p-3 bg-muted/30 rounded-lg">
-                        <Flame className="h-7 w-7 text-primary mb-1.5" />
-                        <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Cook Time</h3>
-                        <p className="text-lg font-medium text-foreground">{recipeData.cookTime}</p>
-                    </div>
-                )}
-                {recipeData.servings && (
-                    <div className="flex flex-col items-center p-3 bg-muted/30 rounded-lg">
-                        <Users className="h-7 w-7 text-primary mb-1.5" />
-                        <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Servings</h3>
-                        <p className="text-lg font-medium text-foreground">{recipeData.servings}</p>
-                    </div>
-                )}
-              </div>
-            )}
+            <RecipeMetaDisplay
+              prepTime={recipeData.prepTime}
+              cookTime={recipeData.cookTime}
+              servings={recipeData.servings}
+            />
 
-            {recipeData.nutritionalInfo && renderNutritionalInfo(recipeData.nutritionalInfo, "Recipe Nutritional Info (Per Serving)", <Activity className="h-6 w-6" />)}
+            {recipeData.nutritionalInfo && (
+              <NutritionalInfoDisplay
+                nutritionalInfo={recipeData.nutritionalInfo}
+                title="Recipe Nutritional Info (Per Serving)"
+                icon={<Activity className="h-6 w-6" />}
+              />
+            )}
             
             <div>
               <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
                 <ShoppingBasket className="h-6 w-6" />Ingredients:
               </h3>
-              <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg">
+              <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
                 {recipeData.ingredients.map((item, index) => (
                   <li key={index} className="ml-4 leading-relaxed">{item}</li>
                 ))}
@@ -353,7 +323,7 @@ export default function SnapRecipePage() {
               <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
                 <ListChecks className="h-6 w-6" />Instructions:
               </h3>
-              <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg">
+              <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
                 {recipeData.instructions.map((step, index) => (
                   <li key={index} className="ml-4 leading-relaxed">{step}</li>
                 ))}
@@ -365,7 +335,7 @@ export default function SnapRecipePage() {
                 <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
                   <Lightbulb className="h-6 w-6" />Tips & Variations:
                 </h3>
-                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg">
+                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
                   {recipeData.tips.map((tip, index) => (
                     <li key={index} className="ml-4 leading-relaxed">{tip}</li>
                   ))}
