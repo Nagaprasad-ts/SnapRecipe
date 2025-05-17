@@ -60,6 +60,17 @@ export default function RecipeDetailPage() {
         return <div className="text-center text-lg w-full">Recipe not found or you do not have permission to view it.</div>;
     }
 
+    const TipsSection = () => (
+        <div>
+            <h2 className="text-2xl font-semibold mb-3 text-accent flex items-center gap-2">
+                <Lightbulb className="h-6 w-6" /> Tips & Variations
+            </h2>
+            <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                {recipe.tips!.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
+            </ul>
+        </div>
+    );
+
     return (
         <div className="w-full flex justify-center"> 
             <Card className="w-full shadow-xl overflow-hidden bg-card">
@@ -114,14 +125,10 @@ export default function RecipeDetailPage() {
                                 </div>
                             )}
 
+                            {/* Tips for DESKTOP */}
                             {recipe.tips && recipe.tips.length > 0 && (
-                                <div>
-                                    <h2 className="text-2xl font-semibold mb-3 text-accent flex items-center gap-2">
-                                        <Lightbulb className="h-6 w-6" /> Tips & Variations
-                                    </h2>
-                                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                                        {recipe.tips.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
-                                    </ul>
+                                <div className="hidden lg:block">
+                                    <TipsSection />
                                 </div>
                             )}
                         </div>
@@ -159,6 +166,13 @@ export default function RecipeDetailPage() {
                                     {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
                                 </ol>
                             </div>
+
+                            {/* Tips for MOBILE */}
+                            {recipe.tips && recipe.tips.length > 0 && (
+                                <div className="lg:hidden">
+                                    <TipsSection />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </CardContent>

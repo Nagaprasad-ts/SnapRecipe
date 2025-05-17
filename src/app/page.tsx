@@ -179,6 +179,22 @@ export default function SnapRecipePage() {
     setError(null);
   };
 
+  const TipsSectionContent = () => (
+    recipeData && recipeData.tips && recipeData.tips.length > 0 ? (
+        <div>
+            <h3 className="text-xl font-semibold mb-3 text-accent flex items-center gap-2">
+                <Lightbulb className="h-6 w-6" />Tips &amp; Variations:
+            </h3>
+            <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                {recipeData.tips.map((tip, index) => (
+                    <li key={index} className="ml-4 leading-relaxed">{tip}</li>
+                ))}
+            </ul>
+        </div>
+    ) : null
+  );
+
+
   return (
     <div className="flex flex-col items-center w-full">
       {error && (
@@ -336,18 +352,10 @@ export default function SnapRecipePage() {
                     />
                   </div>
                 )}
-                {recipeData.tips && recipeData.tips.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-3 text-accent flex items-center gap-2">
-                      <Lightbulb className="h-6 w-6" />Tips &amp; Variations:
-                    </h3>
-                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                      {recipeData.tips.map((tip, index) => (
-                        <li key={index} className="ml-4 leading-relaxed">{tip}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {/* Tips for DESKTOP */}
+                <div className="hidden lg:block">
+                    <TipsSectionContent />
+                </div>
               </div>
 
               {/* Right Column */}
@@ -380,6 +388,10 @@ export default function SnapRecipePage() {
                       <li key={index} className="ml-4 leading-relaxed">{step}</li>
                     ))}
                   </ol>
+                </div>
+                {/* Tips for MOBILE */}
+                <div className="lg:hidden">
+                    <TipsSectionContent />
                 </div>
               </div>
             </div>
