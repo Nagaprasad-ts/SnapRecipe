@@ -17,7 +17,7 @@ import {
     ListChecks,
     Lightbulb,
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NutritionalInfoDisplay } from "@/components/nutritional-info-display";
 import { RecipeMetaDisplay } from "@/components/recipe-meta-display";
@@ -133,6 +133,10 @@ export default function RecipeDetailPage() {
                                     />
                                 </div>
                             )}
+                            {/* Tips Section for Desktop */}
+                            <div className="hidden lg:block">
+                                <TipsSection />
+                            </div>
                         </div>
 
                         {/* Right Column */}
@@ -169,7 +173,10 @@ export default function RecipeDetailPage() {
                                     {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
                                 </ol>
                             </div>
-                            <TipsSection />
+                            {/* Tips Section for Mobile */}
+                            <div className="lg:hidden">
+                                <TipsSection />
+                            </div>
                         </div>
                     </div>
                 </CardContent>
