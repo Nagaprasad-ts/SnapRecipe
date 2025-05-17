@@ -17,7 +17,7 @@ import {
     ListChecks,
     Lightbulb,
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Removed CardTitle as it's not directly used here but in sub-components
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NutritionalInfoDisplay } from "@/components/nutritional-info-display";
 import { RecipeMetaDisplay } from "@/components/recipe-meta-display";
@@ -113,6 +113,17 @@ export default function RecipeDetailPage() {
                                     />
                                 </div>
                             )}
+
+                            {recipe.tips && recipe.tips.length > 0 && (
+                                <div>
+                                    <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
+                                        <Lightbulb className="h-6 w-6" /> Tips & Variations
+                                    </h2>
+                                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                                        {recipe.tips.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
 
                         {/* Right Column */}
@@ -148,17 +159,6 @@ export default function RecipeDetailPage() {
                                     {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
                                 </ol>
                             </div>
-
-                            {recipe.tips && recipe.tips.length > 0 && (
-                                <div>
-                                    <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
-                                        <Lightbulb className="h-6 w-6" /> Tips & Variations
-                                    </h2>
-                                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                                        {recipe.tips.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
-                                    </ul>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </CardContent>
@@ -166,5 +166,3 @@ export default function RecipeDetailPage() {
         </div>
     );
 }
-
-    

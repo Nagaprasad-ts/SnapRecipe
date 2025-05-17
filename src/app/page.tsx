@@ -336,6 +336,18 @@ export default function SnapRecipePage() {
                     />
                   </div>
                 )}
+                {recipeData.tips && recipeData.tips.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                      <Lightbulb className="h-6 w-6" />Tips &amp; Variations:
+                    </h3>
+                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                      {recipeData.tips.map((tip, index) => (
+                        <li key={index} className="ml-4 leading-relaxed">{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               {/* Right Column */}
@@ -369,19 +381,6 @@ export default function SnapRecipePage() {
                     ))}
                   </ol>
                 </div>
-
-                {recipeData.tips && recipeData.tips.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
-                      <Lightbulb className="h-6 w-6" />Tips &amp; Variations:
-                    </h3>
-                    <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                      {recipeData.tips.map((tip, index) => (
-                        <li key={index} className="ml-4 leading-relaxed">{tip}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
           </CardContent>
