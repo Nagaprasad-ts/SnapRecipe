@@ -9,8 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
-import { generateRecipeImage, type GenerateRecipeImageOutput } from '@/ai/flows/generate-recipe-image'; // Added
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Info, ImageOff } from 'lucide-react'; // Added ImageOff
+import { generateRecipeImage, type GenerateRecipeImageOutput } from '@/ai/flows/generate-recipe-image';
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Info, ImageOff, ClipboardList } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
@@ -19,6 +19,7 @@ import { RecipeMetaDisplay } from '@/components/recipe-meta-display';
 import { AccentButton } from '@/components/ui/accent-button';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
+import { ShoppingListDialog } from '@/components/shopping-list-dialog';
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
@@ -27,7 +28,7 @@ export default function SnapRecipePage() {
   const [currentStep, setCurrentStep] = useState<AppStep>('upload');
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [uploadedImageDataUri, setUploadedImageDataUri] = useState<string | null>(null);
-  const [generatedRecipeImageUri, setGeneratedRecipeImageUri] = useState<string | null>(null); // Added
+  const [generatedRecipeImageUri, setGeneratedRecipeImageUri] = useState<string | null>(null);
 
   const [identifiedData, setIdentifiedData] = useState<IdentifyIngredientsOutput | null>(null);
   const [editableIngredients, setEditableIngredients] = useState<string[]>([]);
@@ -37,7 +38,7 @@ export default function SnapRecipePage() {
 
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false); // Added
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,7 +58,7 @@ export default function SnapRecipePage() {
     if (file) {
       setError(null);
       setUploadedImageFile(file);
-      setGeneratedRecipeImageUri(null); // Clear any previously generated image
+      setGeneratedRecipeImageUri(null); 
       try {
         const dataUri = await fileToDataUri(file);
         setUploadedImageDataUri(dataUri);
@@ -125,7 +126,7 @@ export default function SnapRecipePage() {
       return;
     }
     setIsLoadingRecipe(true);
-    setGeneratedRecipeImageUri(null); // Clear previous image before generating new recipe text
+    setGeneratedRecipeImageUri(null); 
     setError(null);
     try {
       const result = await generateRecipe({ ingredients: editableIngredients.filter(ing => ing.trim() !== ''), dishType: editableDishType });
@@ -133,7 +134,7 @@ export default function SnapRecipePage() {
       setCurrentStep('recipe');
       toast({ title: "Recipe Generated!", description: "Enjoy your custom recipe and its nutritional details!" });
 
-      if (!uploadedImageDataUri && result.recipeName) { // If no user image, and recipe has a name, generate one
+      if (!uploadedImageDataUri && result.recipeName) { 
         setIsGeneratingImage(true);
         try {
           const imageResult = await generateRecipeImage({ recipeName: result.recipeName });
@@ -195,7 +196,7 @@ export default function SnapRecipePage() {
     setCurrentStep('upload');
     setUploadedImageFile(null);
     setUploadedImageDataUri(null);
-    setGeneratedRecipeImageUri(null); // Reset generated image
+    setGeneratedRecipeImageUri(null); 
     setIdentifiedData(null);
     setEditableIngredients([]);
     setEditableDishType('');
@@ -268,7 +269,7 @@ export default function SnapRecipePage() {
         </Card>
       )}
 
-      {currentStep === 'edit' && ( // identifiedData might be null if user skipped photo
+      {currentStep === 'edit' && ( 
         <Card className="w-full shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><ChefHat className="h-7 w-7" /> Review &amp; Adjust</CardTitle>
@@ -278,7 +279,7 @@ export default function SnapRecipePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
-              {/* Left Column: Image and Initial Nutrients */}
+              
               <div className="lg:col-span-4 space-y-6">
                 {uploadedImageDataUri && (
                   <div className="mb-4 border rounded-md p-2 bg-muted/50">
@@ -308,7 +309,7 @@ export default function SnapRecipePage() {
                 )}
               </div>
 
-              {/* Right Column: Dish Type and Ingredients */}
+              
               <div className="lg:col-span-8 space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="dishType" className="text-lg font-semibold text-primary">Dish Type</Label>
@@ -363,7 +364,7 @@ export default function SnapRecipePage() {
           </CardHeader>
           <CardContent className="space-y-8 text-justify">
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
-              {/* Left Column */}
+              
               <div className="lg:col-span-4 space-y-8">
                 <div className="border rounded-md p-2 bg-muted/50">
                   {uploadedImageDataUri ? (
@@ -412,13 +413,13 @@ export default function SnapRecipePage() {
                     />
                   </div>
                 )}
-                {/* Tips for DESKTOP */}
+                
                 <div className="hidden lg:block">
                     <TipsSectionContent />
                 </div>
               </div>
 
-              {/* Right Column */}
+              
               <div className="lg:col-span-8 space-y-8">
                 {recipeData.nutritionalInfo && (
                   <NutritionalInfoDisplay
@@ -450,17 +451,26 @@ export default function SnapRecipePage() {
                     ))}
                   </ol>
                 </div>
-                {/* Tips for MOBILE */}
+                
                 <div className="lg:hidden">
                     <TipsSectionContent />
                 </div>
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row gap-2 pt-6">
+          <CardFooter className="flex flex-col sm:flex-row gap-2 pt-6 items-stretch">
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">
               Create Another
             </Button>
+            
+            {user && (
+              <ShoppingListDialog recipeName={recipeData.recipeName} ingredients={recipeData.ingredients}>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <ClipboardList className="mr-2 h-4 w-4" /> View Shopping List
+                </Button>
+              </ShoppingListDialog>
+            )}
+
             {user && (
               <AccentButton onClick={handleSaveRecipe} disabled={isSavingRecipe} className="w-full sm:flex-grow">
                 {isSavingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}

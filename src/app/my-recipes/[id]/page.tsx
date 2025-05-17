@@ -16,11 +16,14 @@ import {
     ShoppingBasket,
     ListChecks,
     Lightbulb,
+    ClipboardList,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NutritionalInfoDisplay } from "@/components/nutritional-info-display";
 import { RecipeMetaDisplay } from "@/components/recipe-meta-display";
+import { Button } from "@/components/ui/button";
+import { ShoppingListDialog } from "@/components/shopping-list-dialog";
 
 export default function RecipeDetailPage() {
     const { user } = useAuth();
@@ -77,7 +80,7 @@ export default function RecipeDetailPage() {
         <div className="w-full flex justify-center"> 
             <Card className="w-full shadow-xl overflow-hidden bg-card">
                 <CardContent className="p-6 md:p-8 space-y-6">
-                    {/* Title and Badge */}
+                    
                     <div className="mb-6">
                         <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 flex items-center gap-3">
                             <Utensils className="h-8 w-8 md:h-9 md:w-9" /> {recipe.recipeName}
@@ -94,9 +97,18 @@ export default function RecipeDetailPage() {
                         )}
                     </div>
 
-                    {/* Grid for two-column layout on larger screens */}
+                     <div className="flex flex-col sm:flex-row gap-2 mb-6">
+                        <ShoppingListDialog recipeName={recipe.recipeName} ingredients={recipe.ingredients}>
+                            <Button variant="outline" className="w-full sm:w-auto">
+                                <ClipboardList className="mr-2 h-4 w-4" /> View Shopping List
+                            </Button>
+                        </ShoppingListDialog>
+                        {/* Add other action buttons here if needed, e.g., Print, Share */}
+                    </div>
+
+                    
                     <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
-                        {/* Left Column */}
+                        
                         <div className="lg:col-span-4 space-y-6">
                             {recipe.recipeImage ? (
                                 <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden shadow-md">
@@ -133,13 +145,13 @@ export default function RecipeDetailPage() {
                                     />
                                 </div>
                             )}
-                            {/* Tips Section for Desktop */}
+                            
                             <div className="hidden lg:block">
                                 <TipsSection />
                             </div>
                         </div>
 
-                        {/* Right Column */}
+                        
                         <div className="lg:col-span-8 space-y-6">
                             {recipe.nutritionalInfo && (
                                 <NutritionalInfoDisplay
@@ -173,7 +185,7 @@ export default function RecipeDetailPage() {
                                     {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
                                 </ol>
                             </div>
-                            {/* Tips Section for Mobile */}
+                            
                             <div className="lg:hidden">
                                 <TipsSection />
                             </div>
