@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, useEffect } from 'react';
 import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ import { AccentButton } from '@/components/ui/accent-button';
 import { Button } from '@/components/ui/button';
 import { cn } from "@/lib/utils";
 import { ShoppingListDialog } from '@/components/shopping-list-dialog';
+import type { UserPreferences } from '@/types/user'; // Added for user preferences
+import { getUserPreferences } from '@/services/user-profile'; // Added for user preferences
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
@@ -45,7 +47,27 @@ export default function SnapRecipePage() {
   const [isTweakingRecipe, setIsTweakingRecipe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null); // Added for user preferences
+
   const { toast } = useToast();
+
+  // Fetch user preferences when user logs in or page loads with a logged-in user
+  useEffect(() => {
+    if (user && user.uid) {
+      getUserPreferences(user.uid)
+        .then(prefs => {
+          if (prefs) {
+            setUserPreferences(prefs);
+          }
+        })
+        .catch(err => {
+          console.error("Failed to load user preferences on homepage:", err);
+          // Optional: toast an error, but maybe less critical on homepage than profile
+        });
+    } else {
+      setUserPreferences(null); // Clear preferences if user logs out
+    }
+  }, [user]);
 
   const fileToDataUri = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -123,7 +145,7 @@ export default function SnapRecipePage() {
   };
 
   const handleGenerateNewRecipe = async () => {
-    if (editableIngredients.length === 0 || !editableDishType) {
+    if (editableIngredients.filter(ing => ing.trim() !== '').length === 0 || !editableDishType.trim()) {
       setError("Please ensure there are ingredients and a dish type specified.");
       toast({ variant: "destructive", title: "Error", description: "Please provide ingredients and a dish type." });
       return;
@@ -132,11 +154,22 @@ export default function SnapRecipePage() {
     setGeneratedRecipeImageUri(null); 
     setError(null);
     try {
-      // Call generateRecipe for a new recipe
-      const result = await generateRecipe({ 
+      // Construct input for generating a new recipe, including user preferences if available
+      const recipeInput: any = { 
         ingredients: editableIngredients.filter(ing => ing.trim() !== ''), 
-        dishType: editableDishType 
-      });
+        dishType: editableDishType.trim()
+      };
+
+      if (user && userPreferences) {
+        if (userPreferences.dietaryRestrictions && userPreferences.dietaryRestrictions.length > 0) {
+          recipeInput.dietaryRestrictions = userPreferences.dietaryRestrictions;
+        }
+        if (userPreferences.preferredCuisines && userPreferences.preferredCuisines.length > 0) {
+          recipeInput.preferredCuisines = userPreferences.preferredCuisines;
+        }
+      }
+      
+      const result = await generateRecipe(recipeInput);
       setRecipeData(result);
       setCurrentStep('recipe');
       toast({ title: "Recipe Generated!", description: "Enjoy your custom recipe and its nutritional details!" });
@@ -263,6 +296,7 @@ export default function SnapRecipePage() {
     setIsGeneratingImage(false);
     setIsSavingRecipe(false);
     setIsTweakingRecipe(false);
+    // setUserPreferences(null); // Optionally clear if you want them re-fetched or based on app logic
   };
 
   const TipsSectionContent = () => (
@@ -332,6 +366,13 @@ export default function SnapRecipePage() {
             <CardTitle className="flex items-center gap-2 text-2xl text-primary"><ChefHat className="h-7 w-7" /> Review &amp; Adjust</CardTitle>
             <CardDescription>
               {uploadedImageDataUri ? "Correct ingredients, dish type, and review initial nutritional estimates from your photo." : "Enter your ingredients and desired dish type."}
+              {user && userPreferences && (userPreferences.dietaryRestrictions.length > 0 || userPreferences.preferredCuisines.length > 0) && (
+                <span className="block mt-1 text-sm text-accent">
+                  Your preferences will be applied for new recipes: 
+                  {userPreferences.dietaryRestrictions.length > 0 && ` Restrictions (${userPreferences.dietaryRestrictions.join(", ")})`}
+                  {userPreferences.preferredCuisines.length > 0 && ` Cuisines (${userPreferences.preferredCuisines.join(", ")})`}.
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -403,7 +444,7 @@ export default function SnapRecipePage() {
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2 pt-6">
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">Start Over</Button>
-            <AccentButton onClick={handleGenerateNewRecipe} disabled={isLoadingRecipe || editableIngredients.length === 0 || !editableDishType.trim()} className="w-full sm:flex-grow">
+            <AccentButton onClick={handleGenerateNewRecipe} disabled={isLoadingRecipe || editableIngredients.filter(ing => ing.trim() !== '').length === 0 || !editableDishType.trim()} className="w-full sm:flex-grow">
               {isLoadingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Utensils className="mr-2 h-4 w-4" />}
               Generate Recipe &amp; Nutrients
             </AccentButton>
@@ -483,13 +524,13 @@ export default function SnapRecipePage() {
                     nutritionalInfo={recipeData.nutritionalInfo}
                     title="Recipe Nutritional Info (Per Serving)"
                     icon={<Activity className="h-6 w-6" />}
-                    titleClassName="text-secondary text-2xl"
+                    titleClassName="text-secondary text-2xl" // Lime green for nutritional info
                     showDataBackground={true}
                   />
                 )}
                 
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-3))] flex items-center gap-2">
+                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-3))] flex items-center gap-2"> {/* Orange for Ingredients */}
                     <ShoppingBasket className="h-6 w-6" />Ingredients:
                   </h3>
                   <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -499,7 +540,7 @@ export default function SnapRecipePage() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-4))] flex items-center gap-2">
+                  <h3 className="text-xl font-semibold mb-3 text-[hsl(var(--chart-4))] flex items-center gap-2"> {/* Purple for Instructions */}
                     <ListChecks className="h-6 w-6" />Instructions:
                   </h3>
                   <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -509,7 +550,7 @@ export default function SnapRecipePage() {
                   </ol>
                 </div>
                 
-                <div className="lg:hidden">
+                <div className="lg:hidden"> {/* Tips for mobile, shown last */}
                     <TipsSectionContent />
                 </div>
                 
@@ -569,3 +610,4 @@ export default function SnapRecipePage() {
     </div>
   );
 }
+
