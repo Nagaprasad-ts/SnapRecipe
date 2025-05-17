@@ -5,10 +5,11 @@ import { useAuth } from '@/contexts/auth-context';
 import { ProtectedRoute } from '@/components/protected-route';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { Input } from '@/components/ui/input'; // Added
+import { useEffect, useState, useMemo } from 'react'; // Added useMemo
 import type { SavedRecipe } from '@/types/recipe';
 import { deleteUserRecipe, getUserRecipes } from '@/services/user-recipes';
-import { Loader2, Trash2, Utensils, ImageOff, ChefHat, ShoppingBasket, Camera } from 'lucide-react';
+import { Loader2, Trash2, Utensils, ImageOff, ChefHat, ShoppingBasket, Camera, Search as SearchIcon } from 'lucide-react'; // Added SearchIcon
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -29,6 +30,7 @@ function MyRecipesPageContent() {
   const { user } = useAuth();
   const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(''); // Added for search
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,6 +45,15 @@ function MyRecipesPageContent() {
         .finally(() => setIsLoadingRecipes(false));
     }
   }, [user, toast]);
+
+  const filteredRecipes = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return recipes;
+    }
+    return recipes.filter(recipe =>
+      recipe.recipeName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [recipes, searchTerm]);
 
   const handleDeleteRecipe = async (recipeId: string) => {
     if (!user) return;
@@ -65,7 +76,7 @@ function MyRecipesPageContent() {
   }
 
   return (
-    <div className="w-full"> {/* Adjusted to remove redundant container/padding */}
+    <div className="w-full">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <h1 className="text-3xl font-bold flex items-center gap-2 text-primary">
           <ChefHat className="h-8 w-8" /> My SnapRecipes
@@ -75,11 +86,26 @@ function MyRecipesPageContent() {
         </AccentButton>
       </div>
 
+      {/* Search Input */}
+      {recipes.length > 0 && ( // Only show search if there are recipes to search
+        <div className="mb-6 relative">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+          <Input
+            type="text"
+            placeholder="Search recipes by name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-full max-w-lg" // Added padding for icon
+          />
+        </div>
+      )}
+
+
       {isLoadingRecipes ? (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
-      ) : recipes.length === 0 ? (
+      ) : recipes.length === 0 ? ( // Initial empty state - no recipes at all
         <Card className="w-full max-w-2xl mx-auto text-center shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center justify-center gap-2 text-2xl text-primary">
@@ -106,9 +132,33 @@ function MyRecipesPageContent() {
             </AccentButton>
           </CardFooter>
         </Card>
-      ) : (
+      ) : filteredRecipes.length === 0 && searchTerm.trim() ? ( // Recipes exist, but search yields no results
+          <Card className="w-full max-w-lg mx-auto text-center shadow-lg">
+            <CardHeader>
+                <CardTitle className="flex items-center justify-center gap-2 text-2xl text-primary">
+                    <SearchIcon className="h-7 w-7" /> No Results Found
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                 <Image
+                    src="https://placehold.co/300x200.png"
+                    alt="Magnifying glass over empty page"
+                    width={300}
+                    height={200}
+                    className="mx-auto rounded-md mb-4 bg-muted shadow"
+                    data-ai-hint="search empty"
+                 />
+                <p className="text-muted-foreground">
+                    No recipes found matching &quot;{searchTerm}&quot;. Try a different search term.
+                </p>
+            </CardContent>
+             <CardFooter className="justify-center">
+                <Button variant="outline" onClick={() => setSearchTerm('')}>Clear Search</Button>
+            </CardFooter>
+        </Card>
+      ) : ( // Display filtered recipes
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipes.map((recipe) => (
+          {filteredRecipes.map((recipe) => (
             <Card key={recipe.id} className="flex flex-col shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
               <CardHeader className="p-0">
                 {recipe.recipeImage ? (
@@ -197,3 +247,6 @@ export default function MyRecipesPage() {
     </ProtectedRoute>
   );
 }
+
+
+    
