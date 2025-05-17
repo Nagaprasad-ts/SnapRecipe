@@ -61,53 +61,61 @@ export default function RecipeDetailPage() {
     }
 
     const TipsSection = () => (
-        <div>
-            <h2 className="text-2xl font-semibold mb-3 text-accent flex items-center gap-2">
-                <Lightbulb className="h-6 w-6" /> Tips & Variations
-            </h2>
-            <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
-                {recipe.tips!.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
-            </ul>
-        </div>
+        recipe.tips && recipe.tips.length > 0 ? (
+            <div>
+                <h2 className="text-2xl font-semibold mb-3 text-accent flex items-center gap-2">
+                    <Lightbulb className="h-6 w-6" /> Tips & Variations
+                </h2>
+                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                    {recipe.tips!.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
+                </ul>
+            </div>
+        ) : null
     );
 
     return (
         <div className="w-full flex justify-center"> 
             <Card className="w-full shadow-xl overflow-hidden bg-card">
-                <CardHeader className="p-0">
-                    {recipe.recipeImage ? (
-                        <div className="relative w-full aspect-[16/9] md:aspect-[2/1]">
-                            <Image
-                                src={recipe.recipeImage}
-                                alt={recipe.recipeName}
-                                fill
-                                style={{ objectFit: "cover" }}
-                                className="bg-muted"
-                                data-ai-hint="recipe cooked dish"
-                                priority 
-                            />
-                        </div>
-                    ) : (
-                        <div className="aspect-[16/9] md:aspect-[2/1] w-full flex items-center justify-center bg-muted" data-ai-hint="recipe placeholder">
-                            <ImageOff className="h-24 w-24 text-muted-foreground" />
-                        </div>
-                    )}
-                </CardHeader>
-                <CardContent className="p-6 md:p-8 space-y-8">
-                    {/* Title and Badge remain above the grid */}
-                    <div className="text-center lg:text-left mb-6 lg:mb-8">
-                        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 flex items-center justify-center lg:justify-start gap-3">
+                <CardContent className="p-6 md:p-8 space-y-6">
+                    {/* Title and Badge */}
+                    <div className="mb-6">
+                        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 flex items-center gap-3">
                             <Utensils className="h-8 w-8 md:h-9 md:w-9" /> {recipe.recipeName}
                         </h1>
                         {recipe.originalDishType && (
-                            <Badge variant="secondary" className="text-sm">{recipe.originalDishType}</Badge>
+                             <p className="text-md text-muted-foreground">
+                                Here's your custom-generated recipe and its nutritional information! Original dish type: <Badge variant="secondary" className="text-sm ml-1">{recipe.originalDishType}</Badge>
+                             </p>
+                        )}
+                         {!recipe.originalDishType && (
+                             <p className="text-md text-muted-foreground">
+                                Here's your custom-generated recipe and its nutritional information!
+                             </p>
                         )}
                     </div>
 
                     {/* Grid for two-column layout on larger screens */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
                         {/* Left Column */}
-                        <div className="lg:col-span-4 space-y-8">
+                        <div className="lg:col-span-4 space-y-6">
+                            {recipe.recipeImage ? (
+                                <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden shadow-md">
+                                    <Image
+                                        src={recipe.recipeImage}
+                                        alt={recipe.recipeName}
+                                        fill
+                                        style={{ objectFit: "cover" }}
+                                        className="bg-muted"
+                                        data-ai-hint="recipe cooked dish"
+                                        priority 
+                                    />
+                                </div>
+                            ) : (
+                                <div className="aspect-[4/3] w-full flex items-center justify-center bg-muted rounded-lg shadow-md" data-ai-hint="recipe placeholder">
+                                    <ImageOff className="h-24 w-24 text-muted-foreground" />
+                                </div>
+                            )}
+                            
                             <RecipeMetaDisplay
                                 prepTime={recipe.prepTime}
                                 cookTime={recipe.cookTime}
@@ -115,32 +123,27 @@ export default function RecipeDetailPage() {
                             />
                             
                             {recipe.originalNutritionalInfo && (recipe.originalNutritionalInfo.calories !== "N/A" || recipe.originalNutritionalInfo.protein !== "N/A") && (
-                                 <div className="p-4 border border-dashed border-input rounded-lg bg-secondary/5">
+                                 <div className="p-4 border border-input rounded-lg bg-secondary/10">
                                     <NutritionalInfoDisplay
                                         nutritionalInfo={recipe.originalNutritionalInfo}
                                         title="Initial Estimate (from Photo)"
                                         icon={<Info className="h-5 w-5" />}
-                                        titleClassName="text-lg text-secondary" 
+                                        titleClassName="text-lg text-secondary font-semibold"
+                                        showDataBackground={false}
                                     />
-                                </div>
-                            )}
-
-                            {/* Tips for DESKTOP */}
-                            {recipe.tips && recipe.tips.length > 0 && (
-                                <div className="hidden lg:block">
-                                    <TipsSection />
                                 </div>
                             )}
                         </div>
 
                         {/* Right Column */}
-                        <div className="lg:col-span-8 space-y-8">
+                        <div className="lg:col-span-8 space-y-6">
                             {recipe.nutritionalInfo && (
                                 <NutritionalInfoDisplay
                                     nutritionalInfo={recipe.nutritionalInfo}
                                     title="Recipe Nutritional Info (Per Serving)"
                                     icon={<Activity className="h-6 w-6" />}
-                                    titleClassName="text-secondary text-2xl" 
+                                    titleClassName="text-secondary text-2xl"
+                                    showDataBackground={true} 
                                 />
                             )}
 
@@ -166,13 +169,7 @@ export default function RecipeDetailPage() {
                                     {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
                                 </ol>
                             </div>
-
-                            {/* Tips for MOBILE */}
-                            {recipe.tips && recipe.tips.length > 0 && (
-                                <div className="lg:hidden">
-                                    <TipsSection />
-                                </div>
-                            )}
+                            <TipsSection />
                         </div>
                     </div>
                 </CardContent>

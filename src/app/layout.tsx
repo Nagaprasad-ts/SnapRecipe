@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/auth-context';
 import { AuthButton } from '@/components/auth-button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'; // Ensure Button is imported
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 
@@ -35,8 +35,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-background`}>
         <AuthProvider>
-          <header className="px-4 md:px-6 lg:px-8 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-16 items-center justify-between w-full"> {/* Removed container mx-auto, added w-full */}
+          <header className="px-4 md:px-6 lg:px-8 sticky top-0 z-50 w-full border-b-2 border-border bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
+            <div className="flex h-16 items-center justify-between w-full">
               <Link href="/" className="flex items-center">
                 <SnapRecipeLogo />
               </Link>
@@ -68,11 +68,19 @@ export default function RootLayout({
             </div>
           </main>
           <Toaster />
-          <footer className="py-6 md:py-0 bg-background border-t-2 border-border px-4 md:px-6 lg:px-8">
-            <div className="flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row w-full"> {/* Removed container mx-auto, added w-full */}
-              <p className="text-balance text-center text-sm md:text-md leading-loose text-muted-foreground md:text-left">
-                Built by 💝{' '}
-                <a href="https://nagaprasad-ts.github.io/portfolio/" className='font-semibold text-accent hover:underline'>Nagaprasad T S</a>
+          <footer className="py-6 bg-background border-t-2 border-border px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between w-full text-sm text-muted-foreground">
+              <p>&copy; {new Date().getFullYear()} SnapRecipe. All rights reserved.</p>
+              <p>
+                Built with 💝 by{' '}
+                <a 
+                  href="https://nagaprasad-ts.github.io/portfolio/" 
+                  className='font-semibold text-accent hover:underline'
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Nagaprasad T S
+                </a>
               </p>
             </div>
           </footer>
