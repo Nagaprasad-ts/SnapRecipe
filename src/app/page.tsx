@@ -6,11 +6,12 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { identifyIngredients, type IdentifyIngredientsOutput } from '@/ai/flows/identify-ingredients';
 import { generateRecipe, type GenerateRecipeOutput } from '@/ai/flows/generate-recipe';
 import { generateRecipeImage, type GenerateRecipeImageOutput } from '@/ai/flows/generate-recipe-image';
-import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Info, ImageOff, ClipboardList } from 'lucide-react';
+import { UploadCloud, ChefHat, Utensils, Loader2, X, Plus, AlertTriangle, Wand2, Save, Activity, ShoppingBasket, ListChecks, Lightbulb, Info, ImageOff, ClipboardList, Edit3 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/auth-context';
 import { saveUserRecipe } from '@/services/user-recipes';
@@ -35,11 +36,13 @@ export default function SnapRecipePage() {
   const [editableDishType, setEditableDishType] = useState<string>('');
 
   const [recipeData, setRecipeData] = useState<GenerateRecipeOutput | null>(null);
+  const [tweakRequestInput, setTweakRequestInput] = useState<string>('');
 
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
+  const [isTweakingRecipe, setIsTweakingRecipe] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { toast } = useToast();
@@ -119,7 +122,7 @@ export default function SnapRecipePage() {
     setEditableIngredients(editableIngredients.filter((_, i) => i !== index));
   };
 
-  const handleGenerateRecipe = async () => {
+  const handleGenerateNewRecipe = async () => {
     if (editableIngredients.length === 0 || !editableDishType) {
       setError("Please ensure there are ingredients and a dish type specified.");
       toast({ variant: "destructive", title: "Error", description: "Please provide ingredients and a dish type." });
@@ -129,7 +132,11 @@ export default function SnapRecipePage() {
     setGeneratedRecipeImageUri(null); 
     setError(null);
     try {
-      const result = await generateRecipe({ ingredients: editableIngredients.filter(ing => ing.trim() !== ''), dishType: editableDishType });
+      // Call generateRecipe for a new recipe
+      const result = await generateRecipe({ 
+        ingredients: editableIngredients.filter(ing => ing.trim() !== ''), 
+        dishType: editableDishType 
+      });
       setRecipeData(result);
       setCurrentStep('recipe');
       toast({ title: "Recipe Generated!", description: "Enjoy your custom recipe and its nutritional details!" });
@@ -163,6 +170,53 @@ export default function SnapRecipePage() {
     }
   };
 
+  const handleApplyTweak = async () => {
+    if (!recipeData || !tweakRequestInput.trim()) {
+      toast({ variant: "destructive", title: "Error", description: "Please enter a tweak instruction for the current recipe." });
+      return;
+    }
+    setIsTweakingRecipe(true);
+    setError(null);
+    try {
+      const tweakedRecipe = await generateRecipe({
+        previousRecipeData: recipeData,
+        tweakInstruction: tweakRequestInput.trim(),
+      });
+      setRecipeData(tweakedRecipe);
+      setTweakRequestInput(''); // Clear input after successful tweak
+      toast({ title: "Recipe Updated!", description: "The recipe has been modified based on your request." });
+
+      // Generate a new image for the tweaked recipe if no user photo was initially uploaded
+      if (!uploadedImageDataUri && tweakedRecipe.recipeName) {
+        setIsGeneratingImage(true);
+        setGeneratedRecipeImageUri(null); // Clear previous AI image
+        try {
+          const imageResult = await generateRecipeImage({ recipeName: tweakedRecipe.recipeName });
+          setGeneratedRecipeImageUri(imageResult.imageDataUri);
+          toast({ title: "New Recipe Image Generated!", description: "An image for your updated recipe has been created."});
+        } catch (imgErr) {
+          console.error("Error generating new recipe image:", imgErr);
+          const imgErrMsg = imgErr instanceof Error ? imgErr.message : "Unknown image generation error.";
+          toast({ variant: "destructive", title: "Image Generation Error", description: "Could not generate a new image for the recipe: " + imgErrMsg.substring(0,100) });
+        } finally {
+          setIsGeneratingImage(false);
+        }
+      }
+    } catch (err) {
+      console.error("Error tweaking recipe:", err);
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during recipe tweaking.";
+      setError("Failed to tweak recipe: " + errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Recipe Tweak Error",
+        description: "Failed to tweak recipe: " + errorMessage.substring(0, 100),
+      });
+    } finally {
+      setIsTweakingRecipe(false);
+    }
+  };
+
+
   const handleSaveRecipe = async () => {
     if (!user || !recipeData) {
       toast({ variant: "destructive", title: "Error", description: "You must be logged in and have a recipe generated to save." });
@@ -176,7 +230,8 @@ export default function SnapRecipePage() {
         user.uid,
         recipeData,
         imageToSave || undefined,
-        identifiedData || undefined
+        // identifiedData contains original photo details, which should be preserved
+        identifiedData || undefined 
       );
       toast({ title: "Recipe Saved!", description: "Your recipe (" + recipeData.recipeName + ") has been added to your collection." });
     } catch (err) {
@@ -201,11 +256,13 @@ export default function SnapRecipePage() {
     setEditableIngredients([]);
     setEditableDishType('');
     setRecipeData(null);
+    setTweakRequestInput('');
     setError(null);
     setIsLoadingIngredients(false);
     setIsLoadingRecipe(false);
     setIsGeneratingImage(false);
     setIsSavingRecipe(false);
+    setIsTweakingRecipe(false);
   };
 
   const TipsSectionContent = () => (
@@ -225,7 +282,7 @@ export default function SnapRecipePage() {
 
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 md:py-8">
       {error && (
         <div className="w-full">
           <Alert variant="destructive" className="mb-6">
@@ -346,7 +403,7 @@ export default function SnapRecipePage() {
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row gap-2 pt-6">
             <Button variant="outline" onClick={handleStartOver} className="w-full sm:w-auto">Start Over</Button>
-            <AccentButton onClick={handleGenerateRecipe} disabled={isLoadingRecipe || editableIngredients.length === 0 || !editableDishType.trim()} className="w-full sm:flex-grow">
+            <AccentButton onClick={handleGenerateNewRecipe} disabled={isLoadingRecipe || editableIngredients.length === 0 || !editableDishType.trim()} className="w-full sm:flex-grow">
               {isLoadingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Utensils className="mr-2 h-4 w-4" />}
               Generate Recipe &amp; Nutrients
             </AccentButton>
@@ -402,13 +459,13 @@ export default function SnapRecipePage() {
                   cookTime={recipeData.cookTime}
                   servings={recipeData.servings}
                 />
-                 {identifiedData?.nutritionalInfo && (recipeData.nutritionalInfo.calories !== "N/A" || recipeData.nutritionalInfo.protein !== "N/A") && (
+                 {identifiedData?.nutritionalInfo && (identifiedData.nutritionalInfo.calories !== "N/A" || identifiedData.nutritionalInfo.protein !== "N/A") && (
                   <div className="p-4 border border-dashed border-input rounded-lg bg-secondary/10">
                     <NutritionalInfoDisplay
                       nutritionalInfo={identifiedData.nutritionalInfo}
                       title="Initial Estimate (from Photo)"
                       icon={<Info className="h-5 w-5" />}
-                      titleClassName="text-lg text-secondary"
+                      titleClassName="text-lg text-secondary font-semibold"
                       showDataBackground={false}
                     />
                   </div>
@@ -455,6 +512,30 @@ export default function SnapRecipePage() {
                 <div className="lg:hidden">
                     <TipsSectionContent />
                 </div>
+                
+                {/* Tweak Recipe Section */}
+                <div className="pt-6 border-t border-border">
+                    <h3 className="text-xl font-semibold mb-3 text-primary flex items-center gap-2">
+                        <Edit3 className="h-6 w-6" /> Customize this Recipe
+                    </h3>
+                    <Textarea
+                        placeholder="e.g., Make it vegetarian, add garlic, double the servings..."
+                        value={tweakRequestInput}
+                        onChange={(e) => setTweakRequestInput(e.target.value)}
+                        className="mb-3 text-base"
+                        rows={3}
+                    />
+                    <AccentButton 
+                        onClick={handleApplyTweak} 
+                        disabled={isTweakingRecipe || !tweakRequestInput.trim()}
+                        className="w-full sm:w-auto"
+                    >
+                        {isTweakingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                        Update Recipe
+                    </AccentButton>
+                </div>
+
+
               </div>
             </div>
           </CardContent>
@@ -476,6 +557,11 @@ export default function SnapRecipePage() {
                 {isSavingRecipe ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Save Recipe
               </AccentButton>
+            )}
+            {!user && (
+               <AccentButton onClick={() => toast({title: "Login Required", description: "Please log in to save your recipe."})} className="w-full sm:flex-grow">
+                 <Save className="mr-2 h-4 w-4" /> Save Recipe
+               </AccentButton>
             )}
           </CardFooter>
         </Card>
