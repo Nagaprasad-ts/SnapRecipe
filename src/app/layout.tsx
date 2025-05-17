@@ -35,15 +35,15 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-background`}>
         <AuthProvider>
-          <header className="px-4 md:px-12 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between"> {/* Max-width for header content */}
+          <header className="px-4 md:px-6 lg:px-8 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-16 items-center justify-between w-full"> {/* Removed container mx-auto, added w-full */}
               <Link href="/" className="flex items-center">
                 <SnapRecipeLogo />
               </Link>
 
               {/* Desktop Auth/Nav Buttons */}
               <div className="hidden md:flex items-center">
-                <AuthButton />
+                <AuthButton renderForSheet={false} />
               </div>
 
               {/* Mobile Menu Button */}
@@ -55,7 +55,7 @@ export default function RootLayout({
                       <span className="sr-only">Open menu</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-full max-w-xs sm:max-w-sm p-4"> {/* Adjusted width and padding */}
+                  <SheetContent side="left" className="w-full max-w-xs sm:max-w-sm p-4">
                     <AuthButton renderForSheet={true} />
                   </SheetContent>
                 </Sheet>
@@ -63,15 +63,13 @@ export default function RootLayout({
             </div>
           </header>
           <main className="flex-1 w-full">
-             {/* Removed max-w-screen-2xl and container from here to allow full width content based on children */}
-            <div className="w-full py-6 md:py-8 px-4 md:px-12 flex-grow flex flex-col">
+            <div className="w-full py-6 md:py-8 px-4 sm:px-6 lg:px-8 flex-grow flex flex-col">
               {children}
             </div>
           </main>
           <Toaster />
-          <footer className="py-6 md:px-8 md:py-0 bg-background border-t-2 border-border">
-             {/* Max-width for footer content */}
-            <div className="container mx-auto flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row max-w-screen-2xl">
+          <footer className="py-6 md:py-0 bg-background border-t-2 border-border px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row w-full"> {/* Removed container mx-auto, added w-full */}
               <p className="text-balance text-center text-sm md:text-md leading-loose text-muted-foreground md:text-left">
                 Built by 💝{' '}
                 <a href="https://nagaprasad-ts.github.io/portfolio/" className='font-semibold text-accent hover:underline'>Nagaprasad T S</a>
