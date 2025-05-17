@@ -36,7 +36,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-background`}>
         <AuthProvider>
           <header className="px-4 md:px-12 sticky top-0 z-50 w-full border-b-2 border-border bg-background/55 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between">
+            <div className="container mx-auto flex h-16 max-w-screen-2xl items-center justify-between"> {/* Max-width for header content */}
               <Link href="/" className="flex items-center">
                 <SnapRecipeLogo />
               </Link>
@@ -63,12 +63,14 @@ export default function RootLayout({
             </div>
           </header>
           <main className="flex-1 w-full">
-            <div className="container mx-auto max-w-screen-2xl py-6 md:py-8 px-4 flex-grow flex flex-col">
+             {/* Removed max-w-screen-2xl and container from here to allow full width content based on children */}
+            <div className="w-full py-6 md:py-8 px-4 md:px-12 flex-grow flex flex-col">
               {children}
             </div>
           </main>
           <Toaster />
           <footer className="py-6 md:px-8 md:py-0 bg-background border-t-2 border-border">
+             {/* Max-width for footer content */}
             <div className="container mx-auto flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row max-w-screen-2xl">
               <p className="text-balance text-center text-sm md:text-md leading-loose text-muted-foreground md:text-left">
                 Built by 💝{' '}

@@ -3,7 +3,6 @@
 
 import { useState, type ChangeEvent } from 'react';
 import Image from 'next/image';
-// Button removed as AccentButton will be used
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from '@/components/ui/label';
@@ -17,7 +16,7 @@ import { saveUserRecipe } from '@/services/user-recipes';
 import { NutritionalInfoDisplay } from '@/components/nutritional-info-display';
 import { RecipeMetaDisplay } from '@/components/recipe-meta-display';
 import { AccentButton } from '@/components/ui/accent-button';
-import { Button } from '@/components/ui/button'; // Keep for non-accent buttons like Start Over & Add Ingredient
+import { Button } from '@/components/ui/button'; 
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
@@ -152,7 +151,7 @@ export default function SnapRecipePage() {
         user.uid,
         recipeData,
         uploadedImageDataUri || undefined,
-        identifiedData || undefined
+        identifiedData || undefined 
       );
       toast({ title: "Recipe Saved!", description: `Your recipe (${recipeData.recipeName}) has been added to your collection.` });
     } catch (err) {
@@ -179,20 +178,25 @@ export default function SnapRecipePage() {
     setError(null);
   };
 
+  // Center content for all steps
+  const contentWrapperClass = "w-full max-w-2xl mx-auto";
+
   return (
-    <div className="flex flex-col items-center w-full"> {/* Adjusted to remove redundant container/padding */}
+    <div className="flex flex-col items-center w-full">
       {error && (
-        <Alert variant="destructive" className="w-full max-w-2xl mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className={contentWrapperClass}>
+          <Alert variant="destructive" className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
       )}
 
       {currentStep === 'upload' && (
-        <Card className="w-full max-w-2xl shadow-xl">
+        <Card className={`${contentWrapperClass} shadow-xl`}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl"><UploadCloud className="h-7 w-7 text-primary" /> Upload Food Photo</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-2xl text-primary"><UploadCloud className="h-7 w-7" /> Upload Food Photo</CardTitle>
             <CardDescription>Upload an image to identify ingredients and get an initial nutritional estimate.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -220,9 +224,9 @@ export default function SnapRecipePage() {
       )}
 
       {currentStep === 'edit' && identifiedData && (
-        <Card className="w-full max-w-2xl shadow-xl">
+        <Card className={`${contentWrapperClass} shadow-xl`}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-2xl"><ChefHat className="h-7 w-7 text-primary" /> Review &amp; Adjust</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-2xl text-primary"><ChefHat className="h-7 w-7" /> Review &amp; Adjust</CardTitle>
             <CardDescription>Correct ingredients, dish type, and review initial nutritional estimates.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -243,10 +247,11 @@ export default function SnapRecipePage() {
                 nutritionalInfo={identifiedData.nutritionalInfo}
                 title="Estimated Nutrients (from Photo)"
                 icon={<Activity className="h-6 w-6" />}
+                titleClassName="text-primary" 
               />
             )}
             <div className="space-y-2">
-              <Label htmlFor="dishType" className="text-lg font-semibold">Dish Type</Label>
+              <Label htmlFor="dishType" className="text-lg font-semibold text-primary">Dish Type</Label>
               <Input
                 id="dishType"
                 value={editableDishType}
@@ -286,7 +291,7 @@ export default function SnapRecipePage() {
       )}
 
       {currentStep === 'recipe' && recipeData && (
-        <Card className="w-full max-w-2xl shadow-xl">
+        <Card className={`${contentWrapperClass} shadow-xl`}>
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-2xl md:text-3xl font-bold text-primary">
               <Utensils className="h-7 w-7 md:h-8 md:w-8" /> {recipeData.recipeName}
@@ -306,6 +311,7 @@ export default function SnapRecipePage() {
                 nutritionalInfo={recipeData.nutritionalInfo}
                 title="Recipe Nutritional Info (Per Serving)"
                 icon={<Activity className="h-6 w-6" />}
+                titleClassName="text-primary" 
               />
             )}
             

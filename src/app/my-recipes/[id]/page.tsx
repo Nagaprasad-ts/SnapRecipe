@@ -17,7 +17,7 @@ import {
     ListChecks,
     Lightbulb
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card"; // Removed CardTitle as it's not directly used
 import { Badge } from "@/components/ui/badge";
 import { NutritionalInfoDisplay } from "@/components/nutritional-info-display";
 import { RecipeMetaDisplay } from "@/components/recipe-meta-display";
@@ -47,33 +47,34 @@ export default function RecipeDetailPage() {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-[calc(100vh-16rem)]"> {/* Adjusted height for global padding */}
+            <div className="flex justify-center items-center min-h-[calc(100vh-16rem)] w-full">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
             </div>
         );
     }
 
     if (!user) {
-        return <div className="text-center text-lg">Please log in to view this recipe.</div>;
+        return <div className="text-center text-lg w-full">Please log in to view this recipe.</div>;
     }
     if (!recipe) {
-        return <div className="text-center text-lg">Recipe not found or you do not have permission to view it.</div>;
+        return <div className="text-center text-lg w-full">Recipe not found or you do not have permission to view it.</div>;
     }
 
     return (
-        <div className="w-full"> {/* Adjusted to remove redundant container/padding */}
-            <Card className="w-full max-w-4xl mx-auto shadow-xl overflow-hidden bg-card">
+        // Max width for the card itself, but page can be full width
+        <div className="w-full flex justify-center"> 
+            <Card className="w-full max-w-4xl shadow-xl overflow-hidden bg-card">
                 <CardHeader className="p-0">
                     {recipe.recipeImage ? (
                         <div className="relative w-full aspect-[16/9] md:aspect-[2/1]">
                             <Image
                                 src={recipe.recipeImage}
                                 alt={recipe.recipeName}
-                                fill // Changed from layout="fill" objectFit="cover"
+                                fill
                                 style={{ objectFit: "cover" }}
                                 className="bg-muted"
                                 data-ai-hint="recipe cooked dish"
-                                priority // Consider adding priority if it's LCP
+                                priority 
                             />
                         </div>
                     ) : (
@@ -103,7 +104,7 @@ export default function RecipeDetailPage() {
                             nutritionalInfo={recipe.nutritionalInfo}
                             title="Recipe Nutritional Info (Per Serving)"
                             icon={<Activity className="h-6 w-6" />}
-                            titleClassName="text-2xl text-green-500" // Retain original title style from this page
+                            titleClassName="text-primary text-2xl" 
                         />
                     )}
 
@@ -113,13 +114,13 @@ export default function RecipeDetailPage() {
                                 nutritionalInfo={recipe.originalNutritionalInfo}
                                 title="Initial Estimate (from Photo)"
                                 icon={<Info className="h-5 w-5" />}
-                                titleClassName="text-lg text-secondary-foreground"
+                                titleClassName="text-lg text-secondary-foreground" // Using secondary foreground for this title
                             />
                         </div>
                     )}
 
                     <div>
-                        <h2 className="text-2xl font-semibold mb-3 text-orange-500 flex items-center gap-2">
+                        <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
                             <ShoppingBasket className="h-6 w-6" /> Ingredients
                         </h2>
                         <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -133,7 +134,7 @@ export default function RecipeDetailPage() {
                     </div>
 
                     <div>
-                        <h2 className="text-2xl font-semibold mb-3 text-emerald-500 flex items-center gap-2">
+                        <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
                             <ListChecks className="h-6 w-6" /> Instructions
                         </h2>
                         <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
@@ -143,7 +144,7 @@ export default function RecipeDetailPage() {
 
                     {recipe.tips && recipe.tips.length > 0 && (
                         <div>
-                            <h2 className="text-2xl font-semibold mb-3 text-rose-500 flex items-center gap-2">
+                            <h2 className="text-2xl font-semibold mb-3 text-primary flex items-center gap-2">
                                 <Lightbulb className="h-6 w-6" /> Tips & Variations
                             </h2>
                             <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
