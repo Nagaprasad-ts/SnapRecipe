@@ -136,10 +136,10 @@ export function AuthButton({ renderForSheet = false }: AuthButtonProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="font-normal">
-              <div className="flex flex-row space-y-1">
+              <Link href="/profile" className="flex flex-row space-y-1">
                 <UserCircle className="h-5 w-5 lg:mr-2" />
                 <p className="text-sm font-medium leading-none">Profile</p>
-              </div>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOutUser} className="cursor-pointer text-red-500 font-normal">
