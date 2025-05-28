@@ -26,13 +26,13 @@ import { getUserPreferences } from '@/services/user-profile';
 
 type AppStep = 'upload' | 'edit' | 'recipe';
 
-// Firestore document limit is 1 MiB (1,048,576 bytes). Data URI string length.
-const MAX_IMAGE_DATA_URI_STRING_LENGTH = 750 * 1024; // Approx 560KB binary data
+const MAX_IMAGE_DATA_URI_STRING_LENGTH = 750 * 1024; // Approx 560KB binary data for the Data URI string
+const MAX_RAW_IMAGE_SIZE_BYTES = 500 * 1024; // 500KB limit for the raw file
 
 export default function SnapRecipePage() {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<AppStep>('upload');
-  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
+  const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null); // Retain for potential direct use if not compressed
   const [uploadedImageDataUri, setUploadedImageDataUri] = useState<string | null>(null);
   const [generatedRecipeImageUri, setGeneratedRecipeImageUri] = useState<string | null>(null);
 
@@ -79,37 +79,121 @@ export default function SnapRecipePage() {
     });
   };
 
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1024; // Max width for compressed image
+        const MAX_HEIGHT = 1024; // Max height for compressed image
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return reject(new Error("Failed to get canvas context"));
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        // Use image/jpeg for better compression for photos, quality 0.7-0.8 is a good balance
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.75); 
+        URL.revokeObjectURL(img.src); // Clean up object URL
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(img.src); // Clean up object URL
+        reject(err);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+
   const handleImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setError(null);
       setGeneratedRecipeImageUri(null);
-      try {
-        const dataUri = await fileToDataUri(file);
-        if (dataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
-          setError("Uploaded image is too large. Please choose a file smaller than ~500KB.");
+      setUploadedImageDataUri(null); // Reset previous image
+      setUploadedImageFile(file); // Store original file temporarily
+
+      if (file.size > MAX_RAW_IMAGE_SIZE_BYTES) {
+        toast({
+          title: "Image is Large",
+          description: "Attempting to compress the image. This may take a moment...",
+        });
+        try {
+          const compressedDataUri = await compressImage(file);
+          if (compressedDataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
+            setError("Compressed image is still too large (over ~560KB data URI). Please choose a smaller file or one that compresses better.");
+            toast({
+              variant: "destructive",
+              title: "Compression Failed",
+              description: "Compressed image is still too large. Max data URI size is ~750KB.",
+            });
+            setUploadedImageDataUri(null);
+            setUploadedImageFile(null);
+            event.target.value = ''; // Clear the file input
+            return;
+          }
+          setUploadedImageDataUri(compressedDataUri);
+          toast({
+            title: "Image Compressed",
+            description: "Image successfully compressed and loaded.",
+          });
+        } catch (compressErr) {
+          console.error("Error compressing image:", compressErr);
+          setError("Failed to compress image. Please try another file.");
           toast({
             variant: "destructive",
-            title: "Image Too Large",
-            description: "Please upload an image smaller than ~500KB.",
+            title: "Compression Error",
+            description: "Failed to compress image. Please try another file.",
           });
           setUploadedImageDataUri(null);
           setUploadedImageFile(null);
-          event.target.value = ''; // Clear the file input
-          return;
+          event.target.value = '';
         }
-        setUploadedImageFile(file);
-        setUploadedImageDataUri(dataUri);
-      } catch (err) {
-        console.error("Error converting file to data URI:", err);
-        setError("Failed to load image. Please try another file.");
-        toast({
-          variant: "destructive",
-          title: "Image Load Error",
-          description: "Failed to load image. Please try another file.",
-        });
-        setUploadedImageDataUri(null);
-        setUploadedImageFile(null);
+      } else {
+        // File is within raw size limits, convert to data URI and check data URI length
+        try {
+          const dataUri = await fileToDataUri(file);
+          if (dataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
+            setError("Image data is too large after conversion (over ~560KB data URI), even if file size was small. Please try another image.");
+            toast({
+              variant: "destructive",
+              title: "Image Data Too Large",
+              description: "Image data URI is too large. Max data URI size is ~750KB.",
+            });
+            setUploadedImageDataUri(null);
+            setUploadedImageFile(null);
+            event.target.value = '';
+            return;
+          }
+          setUploadedImageDataUri(dataUri);
+        } catch (err) {
+          console.error("Error converting file to data URI:", err);
+          setError("Failed to load image. Please try another file.");
+          toast({
+            variant: "destructive",
+            title: "Image Load Error",
+            description: "Failed to load image. Please try another file.",
+          });
+          setUploadedImageDataUri(null);
+          setUploadedImageFile(null);
+          event.target.value = '';
+        }
       }
     }
   };
@@ -164,7 +248,7 @@ export default function SnapRecipePage() {
       return;
     }
     setIsLoadingRecipe(true);
-    setGeneratedRecipeImageUri(null);
+    setGeneratedRecipeImageUri(null); // Reset any previously generated AI image for a new recipe
     setError(null);
     try {
       const recipeInput: any = {
@@ -186,6 +270,7 @@ export default function SnapRecipePage() {
       setCurrentStep('recipe');
       toast({ title: "Recipe Generated!", description: "Enjoy your custom recipe and its nutritional details!" });
 
+      // Only generate AI image if no user-uploaded image is present.
       if (!uploadedImageDataUri && result.recipeName) {
         setIsGeneratingImage(true);
         try {
@@ -236,9 +321,11 @@ export default function SnapRecipePage() {
       setTweakRequestInput('');
       toast({ title: "Recipe Updated!", description: "The recipe has been modified based on your request." });
 
+      // If there wasn't an original user-uploaded image, generate a new one for the tweaked recipe.
+      // Or if an AI image was there, regenerate it for the new recipe name.
       if (!uploadedImageDataUri && tweakedRecipe.recipeName) {
         setIsGeneratingImage(true);
-        setGeneratedRecipeImageUri(null);
+        setGeneratedRecipeImageUri(null); // Clear previous AI image
         try {
           const imageResult = await generateRecipeImage({ recipeName: tweakedRecipe.recipeName });
            if (imageResult.imageDataUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
@@ -278,8 +365,8 @@ export default function SnapRecipePage() {
     }
     setIsSavingRecipe(true);
     
-    // Prioritize uploaded image, then AI generated, then null
-    let imageToSave = uploadedImageDataUri;
+    // Prioritize user-uploaded (potentially compressed) image, then AI generated, then null
+    let imageToSave = uploadedImageDataUri; 
     if (!imageToSave && generatedRecipeImageUri) {
         // Double check size for AI image here too before attempting to save
         if (generatedRecipeImageUri.length > MAX_IMAGE_DATA_URI_STRING_LENGTH) {
@@ -365,8 +452,8 @@ export default function SnapRecipePage() {
             <CardDescription>Upload an image to identify ingredients and get an initial nutritional estimate. Or, skip and type ingredients later.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input id="imageUpload" type="file" accept="image/*" onChange={handleImageChange} className="text-base" />
-            <p className="text-sm text-muted-foreground">Recommended maximum image size: ~500KB.</p>
+            <Input id="imageUpload" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageChange} className="text-base" />
+            <p className="text-sm text-muted-foreground">Recommended maximum image size: ~500KB (larger images will be compressed).</p>
             {uploadedImageDataUri && (
               <div className="mt-4 border rounded-md p-2 bg-muted/50">
                 <Image
@@ -384,7 +471,7 @@ export default function SnapRecipePage() {
              <Button variant="outline" onClick={() => { setUploadedImageDataUri(null); setUploadedImageFile(null); setCurrentStep('edit'); }} className="w-full sm:w-auto">
               Skip Photo & Type Ingredients
             </Button>
-            <AccentButton onClick={handleIdentifyIngredients} disabled={!uploadedImageFile || isLoadingIngredients} className="w-full sm:flex-grow">
+            <AccentButton onClick={handleIdentifyIngredients} disabled={!uploadedImageDataUri || isLoadingIngredients} className="w-full sm:flex-grow">
               {isLoadingIngredients ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
               Identify From Photo
             </AccentButton>
@@ -494,7 +581,6 @@ export default function SnapRecipePage() {
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
-
               <div className="lg:col-span-4 space-y-8">
                 <div className="border rounded-md p-2 bg-muted/50">
                   {uploadedImageDataUri ? (
@@ -543,12 +629,10 @@ export default function SnapRecipePage() {
                     />
                   </div>
                 )}
-
                 <div className="hidden lg:block">
                     <TipsSectionContent />
                 </div>
               </div>
-
 
               <div className="lg:col-span-8 space-y-8">
                 {recipeData.nutritionalInfo && (
@@ -606,8 +690,6 @@ export default function SnapRecipePage() {
                         Update Recipe
                     </AccentButton>
                 </div>
-
-
               </div>
             </div>
           </CardContent>
@@ -641,4 +723,3 @@ export default function SnapRecipePage() {
     </div>
   );
 }
-
