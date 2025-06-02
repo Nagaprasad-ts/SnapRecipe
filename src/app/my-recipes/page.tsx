@@ -133,28 +133,28 @@ function MyRecipesPageContent() {
           </CardFooter>
         </Card>
       ) : filteredRecipes.length === 0 && searchTerm.trim() ? ( // Recipes exist, but search yields no results
-          <Card className="w-full max-w-lg mx-auto text-center shadow-lg">
-            <CardHeader>
-                <CardTitle className="flex items-center justify-center gap-2 text-2xl text-primary">
-                    <SearchIcon className="h-7 w-7" /> No Results Found
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                 <Image
-                    src="https://placehold.co/300x200.png"
-                    alt="Magnifying glass over empty page"
-                    width={300}
-                    height={200}
-                    className="mx-auto rounded-md mb-4 bg-muted shadow"
-                    data-ai-hint="search empty"
-                 />
-                <p className="text-muted-foreground">
-                    No recipes found matching &quot;{searchTerm}&quot;. Try a different search term.
-                </p>
-            </CardContent>
-             <CardFooter className="justify-center">
-                <Button variant="outline" onClick={() => setSearchTerm('')}>Clear Search</Button>
-            </CardFooter>
+        <Card className="w-full max-w-lg mx-auto text-center shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-center gap-2 text-2xl text-primary">
+              <SearchIcon className="h-7 w-7" /> No Results Found
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Image
+              src="https://placehold.co/300x200.png"
+              alt="Magnifying glass over empty page"
+              width={300}
+              height={200}
+              className="mx-auto rounded-md mb-4 bg-muted shadow"
+              data-ai-hint="search empty"
+            />
+            <p className="text-muted-foreground">
+              No recipes found matching &quot;{searchTerm}&quot;. Try a different search term.
+            </p>
+          </CardContent>
+          <CardFooter className="justify-center">
+            <Button variant="outline" onClick={() => setSearchTerm('')}>Clear Search</Button>
+          </CardFooter>
         </Card>
       ) : ( // Display filtered recipes
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -183,18 +183,6 @@ function MyRecipesPageContent() {
                   {recipe.recipeName}
                 </CardTitle>
                 {recipe.originalDishType && <CardDescription className="text-sm text-muted-foreground">Original dish: {recipe.originalDishType}</CardDescription>}
-
-                {recipe.ingredients && recipe.ingredients.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1 text-primary flex items-center gap-1.5">
-                      <ShoppingBasket className="h-4 w-4" />Ingredients:
-                    </h4>
-                    <ul className="list-disc list-inside text-xs text-muted-foreground max-h-20 overflow-y-auto bg-muted/30 p-2 rounded scrollbar-thin scrollbar-thumb-muted-foreground/50">
-                      {recipe.ingredients.slice(0, 5).map((ing, i) => <li key={i} className="ml-2">{ing}</li>)}
-                      {recipe.ingredients.length > 5 && <li className="ml-2">...and {recipe.ingredients.length - 5} more</li>}
-                    </ul>
-                  </div>
-                )}
                 {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-sm mb-1 text-primary flex items-center gap-1.5">
@@ -206,7 +194,7 @@ function MyRecipesPageContent() {
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="p-4 border-t flex flex-col sm:flex-row gap-2">
+              <CardFooter className="p-4 border-t flex flex-row gap-2">
                 <Button asChild variant="default" size="sm" className="w-full">
                   <Link href={`/my-recipes/${recipe.id}`}>View Recipe</Link>
                 </Button>
@@ -249,4 +237,4 @@ export default function MyRecipesPage() {
 }
 
 
-    
+

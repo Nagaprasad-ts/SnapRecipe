@@ -33,7 +33,7 @@ export default function RecipeDetailPage() {
 
     useEffect(() => {
         if (!user || !id) {
-            if (!id) setLoading(false); 
+            if (!id) setLoading(false);
             return;
         }
 
@@ -69,7 +69,7 @@ export default function RecipeDetailPage() {
                 <h2 className="text-2xl font-semibold mb-3 text-accent flex items-center gap-2">
                     <Lightbulb className="h-6 w-6" /> Tips & Variations
                 </h2>
-                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow hover:bg-muted transition-colors duration-200">
                     {recipe.tips!.map((tip, index) => <li key={index} className="ml-4">{tip}</li>)}
                 </ul>
             </div>
@@ -77,27 +77,28 @@ export default function RecipeDetailPage() {
     );
 
     return (
-        <div className="w-full flex justify-center"> 
+        <div className="w-full flex justify-center">
             <Card className="w-full shadow-xl overflow-hidden bg-card">
                 <CardContent className="p-6 md:p-8 space-y-6">
-                    
+
                     <div className="mb-6">
                         <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2 flex items-center gap-3">
                             <Utensils className="h-8 w-8 md:h-9 md:w-9" /> {recipe.recipeName}
                         </h1>
                         {recipe.originalDishType && (
-                             <div className="text-md text-muted-foreground">
-                                Here's your custom-generated recipe and its nutritional information! Original dish type: <Badge variant="secondary" className="text-sm ml-1">{recipe.originalDishType}</Badge>
-                             </div>
+                            <div className="text-md text-muted-foreground">
+                                Here's your custom-generated recipe and its nutritional information! Original dish type:
+                                <Badge variant="secondary" className="text-sm ml-1">{recipe.originalDishType}</Badge>
+                            </div>
                         )}
-                         {!recipe.originalDishType && (
-                             <p className="text-md text-muted-foreground">
+                        {!recipe.originalDishType && (
+                            <p className="text-md text-muted-foreground">
                                 Here's your custom-generated recipe and its nutritional information!
-                             </p>
+                            </p>
                         )}
                     </div>
 
-                     <div className="flex flex-col sm:flex-row gap-2 mb-6">
+                    <div className="flex flex-col sm:flex-row gap-2 mb-6">
                         <ShoppingListDialog recipeName={recipe.recipeName} ingredients={recipe.ingredients}>
                             <Button variant="outline" className="w-full sm:w-auto">
                                 <ClipboardList className="mr-2 h-4 w-4" /> View Shopping List
@@ -106,9 +107,9 @@ export default function RecipeDetailPage() {
                         {/* Add other action buttons here if needed, e.g., Print, Share */}
                     </div>
 
-                    
+
                     <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-x-12 gap-y-8">
-                        
+
                         <div className="lg:col-span-4 space-y-6">
                             {recipe.recipeImage ? (
                                 <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden shadow-md">
@@ -119,7 +120,7 @@ export default function RecipeDetailPage() {
                                         style={{ objectFit: "cover" }}
                                         className="bg-muted"
                                         data-ai-hint="recipe cooked dish"
-                                        priority 
+                                        priority
                                     />
                                 </div>
                             ) : (
@@ -127,15 +128,15 @@ export default function RecipeDetailPage() {
                                     <ImageOff className="h-24 w-24 text-muted-foreground" />
                                 </div>
                             )}
-                            
+
                             <RecipeMetaDisplay
                                 prepTime={recipe.prepTime}
                                 cookTime={recipe.cookTime}
                                 servings={recipe.servings}
                             />
-                            
+
                             {recipe.originalNutritionalInfo && (recipe.originalNutritionalInfo.calories !== "N/A" || recipe.originalNutritionalInfo.protein !== "N/A") && (
-                                 <div className="p-4 border border-input rounded-lg bg-secondary/10">
+                                <div className="p-4 border border-input rounded-lg bg-secondary/10">
                                     <NutritionalInfoDisplay
                                         nutritionalInfo={recipe.originalNutritionalInfo}
                                         title="Initial Estimate (from Photo)"
@@ -145,13 +146,13 @@ export default function RecipeDetailPage() {
                                     />
                                 </div>
                             )}
-                            
+
                             <div className="hidden lg:block">
                                 <TipsSection />
                             </div>
                         </div>
 
-                        
+
                         <div className="lg:col-span-8 space-y-6">
                             {recipe.nutritionalInfo && (
                                 <NutritionalInfoDisplay
@@ -159,7 +160,7 @@ export default function RecipeDetailPage() {
                                     title="Recipe Nutritional Info (Per Serving)"
                                     icon={<Activity className="h-6 w-6" />}
                                     titleClassName="text-secondary text-2xl"
-                                    showDataBackground={true} 
+                                    showDataBackground={true}
                                 />
                             )}
 
@@ -167,7 +168,7 @@ export default function RecipeDetailPage() {
                                 <h2 className="text-2xl font-semibold mb-3 text-[hsl(var(--chart-3))] flex items-center gap-2">
                                     <ShoppingBasket className="h-6 w-6" /> Ingredients
                                 </h2>
-                                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                                <ul className="list-disc list-inside space-y-1.5 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow hover:bg-muted transition-colors duration-200">
                                     {recipe.ingredients.map((ingredient, idx) => <li key={idx} className="ml-4">{ingredient}</li>)}
                                 </ul>
                                 {recipe.originalIngredients && recipe.originalIngredients.length > 0 && (
@@ -181,11 +182,11 @@ export default function RecipeDetailPage() {
                                 <h2 className="text-2xl font-semibold mb-3 text-[hsl(var(--chart-4))] flex items-center gap-2">
                                     <ListChecks className="h-6 w-6" /> Instructions
                                 </h2>
-                                <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow">
+                                <ol className="list-decimal list-inside space-y-3 text-foreground/90 bg-muted/30 p-4 rounded-lg shadow hover:bg-muted transition-colors duration-200">
                                     {recipe.instructions.map((instruction, idx) => <li key={idx} className="ml-4 leading-relaxed">{instruction}</li>)}
                                 </ol>
                             </div>
-                            
+
                             <div className="lg:hidden">
                                 <TipsSection />
                             </div>

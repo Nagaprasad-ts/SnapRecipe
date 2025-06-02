@@ -12,7 +12,7 @@ import { deleteUserRecipe, getUserRecipes } from '@/services/user-recipes';
 import { getUserPreferences, saveUserPreferences } from '@/services/user-profile'; // Added
 import type { UserPreferences, DietaryRestrictionId } from '@/types/user'; // Added
 import { AVAILABLE_DIETARY_RESTRICTIONS } from '@/types/user'; // Added
-import { Loader2, Trash2, Utensils, ImageOff, ChefHat, Settings, CheckSquare, Square, Save } from 'lucide-react';
+import { Loader2, Trash2, Utensils, ImageOff, ChefHat, Settings, Save } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -155,8 +155,8 @@ function ProfilePageContent() {
           </div>
         </CardHeader>
         <CardFooter className="justify-center sm:justify-end">
-          <Button variant="outline" onClick={signOutUser}>
-            Log Out
+          <Button variant="destructive" onClick={signOutUser}>
+            <Trash2 />Log Out
           </Button>
         </CardFooter>
       </Card>
